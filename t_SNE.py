@@ -25,6 +25,8 @@ def loadData(csv_file, dtypes):
 
 def changeGroups(labels, classes, groups):
 
+    labels = labels.copy()
+
     for cl, id in classes.items():
 
         new_id = groups[cl]
@@ -66,12 +68,17 @@ if __name__ == '__main__':
               'embedding' : float}
 
     n_components = 2
-    groups = {'HA':0, 'HB':1, 'HN':2, 'MA':0, 'MB':1, 'MN':2}
-    label_list = ['Asiático', 'Blanco', 'Negro']
+    groups_1 = {'HA':0, 'HB':1, 'HN':2, 'MA':0, 'MB':1, 'MN':2}
+    groups_2 = {'HA':0, 'HB':0, 'HN':0, 'MA':1, 'MB':1, 'MN':1}
+    label_list_1 = ['Asiático', 'Blanco', 'Negro']
+    label_list_2 = ['Hombre', 'Mujer']
 
 
+    # Load data
     embeddings, labels = loadData(csv_file, dtypes)
 
-    labels = changeGroups(labels, classes, groups)
+    labels_1 = changeGroups(labels, classes, groups_1)
+    labels_2 = changeGroups(labels, classes, groups_2)
 
-    calculateTSNE(embeddings, labels, n_components, label_list=label_list, display=True)
+    calculateTSNE(embeddings, labels_1, n_components, label_list=label_list_1, display=True)
+    calculateTSNE(embeddings, labels_2, n_components, label_list=label_list_2, display=True)
