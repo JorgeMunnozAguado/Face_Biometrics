@@ -8,8 +8,8 @@ from keras.optimizers import Adam
 from keras.losses import CategoricalCrossentropy
 from keras.utils import to_categorical
 
-from t_SNE import loadData, changeGroups
-from embeddings import classes
+from dataset import loadData, changeGroups, dtypes
+from dataset import classes, classes_race, classes_gender
 
 def defineModel(input_shape, num_outputs):
 
@@ -24,82 +24,70 @@ def defineModel(input_shape, num_outputs):
     return nn
 
 
-def plotHistory(history):
+def plotHistory(history, title):
 
     plt.plot(history.history['accuracy'], label='Accuracy')
-    # plt.plot(history.history['val_accuracy'], label='Validation accuracy')
-    plt.title('Accuracy')
+    plt.plot(history.history['val_accuracy'], label='Validation accuracy')
+    plt.title('Accuracy  - ' + title)
     plt.ylabel('')
     plt.xlabel('Epoch')
     plt.legend(loc="upper left")
     plt.show()
 
     plt.plot(history.history['loss'], label='Loss')
-    # plt.plot(history.history['val_loss'], label='Validation loss')
-    plt.title('Binary Crossentropy')
+    plt.plot(history.history['val_loss'], label='Validation loss')
+    plt.title('Binary Crossentropy  - ' + title)
     plt.ylabel('')
     plt.xlabel('Epoch')
     plt.legend(loc="upper left")
     plt.show()
 
 
+def test_model(model, embeddings, labels, pre_data=True):
+
+    if pre_data:
+
+        labels = to_categorical(labels)
+
+        embeddings = np.expand_dims(embeddings, axis=0)
+        labels     = np.expand_dims(labels, axis=0)
 
 
-def raceClassifier(csv_file, dtypes, batch_size=30, plot=True, verbose=0):
+    # Fit model to data
+    history = model_race.fit(embeddings, labels_race, batch_size=batch_size, epochs=15, verbose=1, validation_split=0.2)
+    #history = model_race.fit(embeddings, labels_race, batch_size=batch_size, epochs=50, verbose=verbose)
 
-    groups_race = {'HA':0, 'HB':1, 'HN':2, 'MA':0, 'MB':1, 'MN':2}
+    return model, history
 
 
-    # Prepare data
+
+def classifier(csv_file, need_classes, title, batch_size=30, plot=True, verbose=0):
+
+    # Load data
     embeddings, labels = loadData(csv_file, dtypes)
 
-    labels_race = changeGroups(labels, classes, groups_race)
-    labels_race = to_categorical(labels_race)
+    # Prepare data
+    labels = changeGroups(labels, classes, need_classes)
+    labels = to_categorical(labels)
 
-    embeddings  = np.expand_dims(embeddings, axis=0)
-    labels_race = np.expand_dims(labels_race, axis=0)
+    embeddings = np.expand_dims(embeddings, axis=0)
+    labels     = np.expand_dims(labels, axis=0)
 
+    output_size = len(np.unique( list(need_classes.values()) ))
+    print('----------------------------->', output_size, title)
 
     # Define model
-    model_race = defineModel(embeddings.shape[1:], 3)
-
+    model = defineModel(embeddings.shape[1:], output_size)
     if verbose:  model_race.summary()
 
 
     # Fit model to data
-    # history = model_race.fit(embeddings, labels_race, epochs=15, verbose=1, validation_split=0.2)
-    history = model_race.fit(embeddings, labels_race, batch_size=batch_size, epochs=50, verbose=verbose)
-
-    if plot:  plotHistory(history)
+    history = model.fit(embeddings, labels, batch_size=batch_size, epochs=15, verbose=1, validation_split=0.2)
 
 
-
-def genderClassifier(csv_file, dtypes, batch_size=30, plot=True, verbose=0):
-
-    groups_gender = {'HA':0, 'HB':0, 'HN':0, 'MA':1, 'MB':1, 'MN':1}
+    if plot:  plotHistory(history, title)
 
 
-    # Prepare data
-    embeddings, labels = loadData(csv_file, dtypes)
-
-    labels_race = changeGroups(labels, classes, groups_gender)
-    labels_race = to_categorical(labels_race)
-
-    embeddings  = np.expand_dims(embeddings, axis=0)
-    labels_race = np.expand_dims(labels_race, axis=0)
-
-
-    # Define model
-    model_race = defineModel(embeddings.shape[1:], 2)
-
-    if verbose:  model_race.summary()
-
-
-    # Fit model to data
-    # history = model_race.fit(embeddings, labels_race, epochs=15, verbose=1, validation_split=0.2)
-    history = model_race.fit(embeddings, labels_race, batch_size=batch_size, epochs=50, verbose=verbose)
-
-    if plot:  plotHistory(history)
 
 
 
@@ -107,12 +95,5 @@ if __name__ == '__main__':
 
     csv_file = '4K_120/embeddings.csv'
 
-    dtypes = {'file_name' : str,
-              'label' : int,
-              'embedding' : float}
-
-
-
-    # raceClassifier(csv_file, dtypes)
-    genderClassifier(csv_file, dtypes)
-
+    classifier(csv_file, classes_race, 'race')
+    classifier(csv_file, classes_gender, 'gender')

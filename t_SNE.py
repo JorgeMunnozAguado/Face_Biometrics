@@ -5,40 +5,11 @@ import matplotlib.pyplot as plt
 
 from sklearn.manifold import TSNE
 
-from embeddings import classes
+from dataset import classes, classes_race, classes_gender, label, label_race, label_gender, dtypes
+from dataset import loadData, changeGroups
 
 
-
-def loadData(csv_file, dtypes):
-
-    data = pd.read_csv(csv_file, dtype=dtypes)
-
-    embeddings = data.iloc[:, 2:]
-    embeddings = embeddings.to_numpy()
-
-    labels = data.iloc[:, 1]
-    labels = labels.to_numpy()
-
-    return embeddings, labels
-
-
-
-def changeGroups(labels, classes, groups):
-
-    labels = labels.copy()
-
-    for cl, id in classes.items():
-
-        new_id = groups[cl]
-
-        idx = np.where(labels == id)
-        labels[idx] = new_id
-
-
-    return labels
-
-
-def calculateTSNE(embeddings, labels, n_components, label_list=None, display=False):
+def calculateTSNE(embeddings, labels, n_components=2, label_list=None, display=False, title=None):
 
     repre = TSNE(n_components=n_components, random_state=0).fit_transform(embeddings)
 
@@ -54,7 +25,10 @@ def calculateTSNE(embeddings, labels, n_components, label_list=None, display=Fal
 
         legend = ax.legend(handles=handles, labels=labels)
 
+        if title:  plt.title(title)
         plt.show()
+
+    return repre
 
 
 
@@ -63,22 +37,13 @@ if __name__ == '__main__':
 
     csv_file = '4K_120/embeddings.csv'
 
-    dtypes = {'file_name' : str,
-              'label' : int,
-              'embedding' : float}
-
-    n_components = 2
-    groups_1 = {'HA':0, 'HB':1, 'HN':2, 'MA':0, 'MB':1, 'MN':2}
-    groups_2 = {'HA':0, 'HB':0, 'HN':0, 'MA':1, 'MB':1, 'MN':1}
-    label_list_1 = ['Asiático', 'Blanco', 'Negro']
-    label_list_2 = ['Hombre', 'Mujer']
-
 
     # Load data
     embeddings, labels = loadData(csv_file, dtypes)
 
-    labels_1 = changeGroups(labels, classes, groups_1)
-    labels_2 = changeGroups(labels, classes, groups_2)
+    labels_race = changeGroups(labels, classes, classes_race)
+    labels_gender = changeGroups(labels, classes, classes_gender)
 
-    calculateTSNE(embeddings, labels_1, n_components, label_list=label_list_1, display=True)
-    calculateTSNE(embeddings, labels_2, n_components, label_list=label_list_2, display=True)
+    calculateTSNE(embeddings, labels_race, label_list=label_race, display=True, title='race')
+    calculateTSNE(embeddings, labels_gender, label_list=label_gender, display=True, title='gender')
+    calculateTSNE(embeddings, labels, label_list=label, display=True, title='All')

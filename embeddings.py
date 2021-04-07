@@ -9,9 +9,7 @@ from keras_vggface.vggface import VGGFace
 from keras.models import Model, Sequential
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, Flatten, Lambda, Activation, ActivityRegularization
 
-
-
-classes = {'HA':0, 'HB':1, 'HN':2, 'MA':3, 'MB':4, 'MN':5}
+from dataset import classes
 
 
 
@@ -74,7 +72,7 @@ def loadSet(path, model, cut=50, verbose=0):
         data = os.listdir(group_path)[:cut]
 
         if verbose:  print('Class', c,'   - len:', len(data))
-        
+
 
         for idx, name in enumerate(data):
 
@@ -101,10 +99,10 @@ def loadModel(verbose=0):
     # Import the ResNet-50 model trained with VGG2 database
     my_model = 'resnet50'
     resnet = VGGFace(model = my_model)
-    
+
     if verbose:  resnet.summary()
 
-    # Select the lat leayer as feature embedding  
+    # Select the lat leayer as feature embedding
     last_layer = resnet.get_layer('avg_pool').output
     feature_layer = Flatten(name='flatten')(last_layer)
     model_vgg = Model(resnet.input, feature_layer)
@@ -116,4 +114,4 @@ def loadModel(verbose=0):
 if __name__ == '__main__':
 
     model = loadModel()
-    loadSet('4K_120', model, cut=50, verbose=1)
+    loadSet('4K_120', model, cut=150, verbose=1)
