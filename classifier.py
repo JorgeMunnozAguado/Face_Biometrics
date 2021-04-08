@@ -7,6 +7,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.losses import CategoricalCrossentropy
 from keras.utils import to_categorical
+from sklearn.model_selection import train_test_split
 
 from dataset import loadData, changeGroups, dtypes
 from dataset import classes, classes_race, classes_gender
@@ -42,26 +43,14 @@ def plotHistory(history, title):
     plt.legend(loc="upper left")
     plt.show()
 
+    val = history.history['val_accuracy']
+    idx = np.argmax(val)
 
-def test_model(model, embeddings, labels, pre_data=True):
-
-    if pre_data:
-
-        labels = to_categorical(labels)
-
-        embeddings = np.expand_dims(embeddings, axis=0)
-        labels     = np.expand_dims(labels, axis=0)
-
-
-    # Fit model to data
-    history = model_race.fit(embeddings, labels_race, batch_size=batch_size, epochs=15, verbose=1, validation_split=0.2)
-    #history = model_race.fit(embeddings, labels_race, batch_size=batch_size, epochs=50, verbose=verbose)
-
-    return model, history
+    print('Results (' + title + '):   val acc: %f  (epoch: %d)'%(val[idx], idx))
 
 
 
-def classifier(csv_file, need_classes, title, batch_size=30, plot=True, verbose=0):
+def simple_classification(csv_file, need_classes, title, batch_size=30, plot=True, verbose=0):
 
     # Load data
     embeddings, labels = loadData(csv_file, dtypes)
@@ -70,22 +59,42 @@ def classifier(csv_file, need_classes, title, batch_size=30, plot=True, verbose=
     labels = changeGroups(labels, classes, need_classes)
     labels = to_categorical(labels)
 
-    embeddings = np.expand_dims(embeddings, axis=0)
-    labels     = np.expand_dims(labels, axis=0)
-
     output_size = len(np.unique( list(need_classes.values()) ))
-    print('----------------------------->', output_size, title)
+
+
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(embeddings, labels, test_size=0.33)
+
+
+    classifier(X_train, X_test, y_train, y_test, output_size, title, batch_size=batch_size, plot=plot, verbose=verbose)
+
+
+
+
+def classifier(X_train, X_test, y_train, y_test, output_size, title, batch_size=30, plot=True, verbose=0):
+
+
+    # Prepare data
+    X_train = np.expand_dims(X_train, axis=0)
+    X_test  = np.expand_dims(X_test, axis=0)
+    y_train = np.expand_dims(y_train, axis=0)
+    y_test  = np.expand_dims(y_test, axis=0)
+
 
     # Define model
-    model = defineModel(embeddings.shape[1:], output_size)
-    if verbose:  model_race.summary()
+    model = defineModel(X_train.shape[1:], output_size)
+    if verbose:  model.summary()
 
 
     # Fit model to data
-    history = model.fit(embeddings, labels, batch_size=batch_size, epochs=15, verbose=1, validation_split=0.2)
+    history = model.fit(X_train, y_train, batch_size=batch_size, epochs=50, validation_data=(X_test, y_test), verbose=verbose)
 
 
+    # Plot model
     if plot:  plotHistory(history, title)
+
+
+    return model, history
 
 
 
@@ -95,5 +104,5 @@ if __name__ == '__main__':
 
     csv_file = '4K_120/embeddings.csv'
 
-    classifier(csv_file, classes_race, 'race')
-    classifier(csv_file, classes_gender, 'gender')
+    simple_classification(csv_file, classes_race, 'race')
+    simple_classification(csv_file, classes_gender, 'gender')

@@ -17,7 +17,7 @@ dtypes = {'file_name' : str,
           'embedding' : float}
 
 
-def loadData(csv_file, dtypes):
+def loadData(csv_file, dtypes=dtypes):
 
     data = pd.read_csv(csv_file, dtype=dtypes)
 
