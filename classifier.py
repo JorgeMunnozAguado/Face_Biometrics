@@ -9,7 +9,7 @@ from keras.losses import CategoricalCrossentropy
 from keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
 
-from dataset import loadData, changeGroups, dtypes
+from dataset import loadData, changeGroups, splitGroups, dtypes
 from dataset import classes, classes_race, classes_gender
 
 def defineModel(input_shape, num_outputs):
@@ -46,7 +46,7 @@ def plotHistory(history, title):
     val = history.history['val_accuracy']
     idx = np.argmax(val)
 
-    print('Results (' + title + '):   val acc: %f  (epoch: %d)'%(val[idx], idx))
+    print('Results max (' + title + '):   val acc: %f  (epoch: %d)'%(val[idx], idx))
 
 
 
@@ -67,6 +67,33 @@ def simple_classification(csv_file, need_classes, title, batch_size=30, plot=Tru
 
 
     classifier(X_train, X_test, y_train, y_test, output_size, title, batch_size=batch_size, plot=plot, verbose=verbose)
+
+
+
+def different_classification(csv_file, train_dict, need_classes, batch_size=30, plot=True, verbose=0):
+    '''
+    train_dict = {0: for test, 1 for training}
+    '''
+
+    # Load data
+    embeddings, labels = loadData(csv_file, dtypes)
+
+    # Prepare data
+    X_train, X_test, y_train, y_test  = splitGroups(embeddings, labels, need_classes, classes, train_dict)
+
+    y_train = to_categorical(y_train)
+    y_test  = to_categorical(y_test, 3)
+
+    # print(y_train.shape)
+    # print(y_train)
+    # print(y_test.shape)
+    # print(y_test)
+
+    output_size = len(np.unique( list(need_classes.values()) ))
+
+
+    classifier(X_train, X_test, y_train, y_test, output_size, 'test', batch_size=batch_size, plot=plot, verbose=verbose)
+
 
 
 
@@ -104,5 +131,11 @@ if __name__ == '__main__':
 
     csv_file = '4K_120/embeddings.csv'
 
-    simple_classification(csv_file, classes_race, 'race')
-    simple_classification(csv_file, classes_gender, 'gender')
+    # simple_classification(csv_file, classes_race, 'race')
+    # simple_classification(csv_file, classes_gender, 'gender')
+
+
+    # Ej. 4
+    train_dict = {'HA':1, 'HB':1, 'HN':1, 'MA':0, 'MB':0, 'MN':0}
+
+    different_classification(csv_file, train_dict, classes_race)

@@ -1,4 +1,5 @@
 
+import random
 import numpy as np
 import pandas as pd
 
@@ -17,7 +18,23 @@ dtypes = {'file_name' : str,
           'embedding' : float}
 
 
-def loadData(csv_file, dtypes=dtypes):
+
+def suffle_array(X, y):
+
+    c = list(zip(X, y))
+
+    random.shuffle(c)
+
+    X, y = zip(*c)
+    X, y = np.asarray(X), np.asarray(y)
+
+
+    return X, y
+
+
+
+
+def loadData(csv_file, dtypes=dtypes, suffle=True):
 
     data = pd.read_csv(csv_file, dtype=dtypes)
 
@@ -26,6 +43,11 @@ def loadData(csv_file, dtypes=dtypes):
 
     labels = data.iloc[:, 1]
     labels = labels.to_numpy()
+
+    # Suffle
+    if suffle:
+        embeddings, labels = suffle_array(embeddings, labels)
+        
 
     return embeddings, labels
 
@@ -43,3 +65,44 @@ def changeGroups(labels, classes, groups):
         labels[idx] = new_id
 
     return labels
+
+
+def splitGroups(embeddings, labels, need_classes, classes, groups, suffle=True):
+    '''
+    groups = {0: for test, 1 for training}
+    '''
+
+    X_train, X_test, y_train, y_test = [], [], [], []
+
+
+
+    for cl, id in classes.items():
+
+        new_id = groups[cl]
+
+        # print(id, new_id)
+
+        idx = np.where(labels == id)[0]
+
+        aux = labels[idx]
+        aux = np.full(aux.shape, need_classes[cl])
+
+        if new_id == 0:
+
+            X_test += list(embeddings[idx])
+            y_test += list(aux)
+
+
+        elif new_id == 1:
+
+            X_train += list(embeddings[idx])
+            y_train += list(aux)
+
+
+    # Suffle
+    if suffle:
+        X_train, y_train = suffle_array(X_train, y_train)
+        X_test, y_test   = suffle_array(X_test, y_test)
+
+
+    return X_train, X_test, y_train, y_test 
