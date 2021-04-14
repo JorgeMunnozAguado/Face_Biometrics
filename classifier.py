@@ -9,7 +9,7 @@ from keras.losses import CategoricalCrossentropy
 from keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
 
-from dataset import loadData, changeGroups, splitGroups, dtypes
+from dataset import loadData, changeGroups, splitGroups, onlyGroup, searchDict, dtypes
 from dataset import classes, classes_race, classes_gender
 
 def defineModel(input_shape, num_outputs):
@@ -84,10 +84,6 @@ def different_classification(csv_file, train_dict, need_classes, batch_size=30, 
     y_train = to_categorical(y_train)
     y_test  = to_categorical(y_test, 3)
 
-    # print(y_train.shape)
-    # print(y_train)
-    # print(y_test.shape)
-    # print(y_test)
 
     output_size = len(np.unique( list(need_classes.values()) ))
 
@@ -125,6 +121,54 @@ def classifier(X_train, X_test, y_train, y_test, output_size, title, batch_size=
 
 
 
+def train(X_train, X_test, output_size, batch_size=30, verbose=0):
+
+    # Prepare data
+    X_train = np.expand_dims(X_train, axis=0)
+    y_train = np.expand_dims(y_train, axis=0)
+
+
+    # Define model
+    model = defineModel(X_train.shape[1:], output_size)
+    if verbose:  model.summary()
+
+
+    # Fit model to data
+    history = model.fit(X_train, y_train, batch_size=batch_size, epochs=50, verbose=verbose)
+
+    return model, history
+
+
+def evaluate(y_train, y_test, model):
+
+    # Prepare data
+    X_test  = np.expand_dims(X_test, axis=0)
+    y_test  = np.expand_dims(y_test, axis=0)
+
+    # Evaluate model
+    loss, accuracy = model.evaluate(X_test, y_test)
+
+    return loss, accuracy
+
+
+def split_classes(csv_file):
+
+    embeddings, labels = loadData(csv_file, dtypes)
+
+
+    for j, cl, id in enumerate(classes_race.items()):
+
+        race = label_race[j]
+
+        #classes_list = searchDict(id, classes_race)
+
+        embeddings, labels = onlyGroup(embeddings, labels, [id], classes)
+
+        print(embeddings.shape, labels.shape)
+
+        X_train, X_test, y_train, y_test = train_test_split(embeddings, labels, test_size=250)
+
+        print(X_train.shape, X_test.shape)
 
 
 if __name__ == '__main__':

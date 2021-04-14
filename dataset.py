@@ -9,14 +9,23 @@ classes_gender = {'HA':0, 'HB':0, 'HN':0, 'MA':1, 'MB':1, 'MN':1}
 
 
 label = ['Hombre Asiático', 'Hombre Blanco', 'Hombre Negro', 'Mujer Asiática', 'Mujer Blanca', 'Mujer Negra']
-label_race = ['Asiático', 'Blanco', 'Negro']
+label_race = ['Asiatico', 'Blanco', 'Negro']
 label_gender = ['Hombre', 'Mujer']
-
 
 dtypes = {'file_name' : str,
           'label' : int,
           'embedding' : float}
 
+
+def searchDict(value, dict):
+
+    lista = []
+
+    for key, val in dict.items():
+
+        if val == value: lista.append(key)
+
+    return lista
 
 
 def suffle_array(X, y):
@@ -47,7 +56,7 @@ def loadData(csv_file, dtypes=dtypes, suffle=True):
     # Suffle
     if suffle:
         embeddings, labels = suffle_array(embeddings, labels)
-        
+
 
     return embeddings, labels
 
@@ -105,4 +114,19 @@ def splitGroups(embeddings, labels, need_classes, classes, groups, suffle=True):
         X_test, y_test   = suffle_array(X_test, y_test)
 
 
-    return X_train, X_test, y_train, y_test 
+    return X_train, X_test, y_train, y_test
+
+
+def onlyGroup(embeddings, labels, need_classes, classes):
+
+    X, y = [], []
+
+    for id in need_classes:
+
+        idx = np.where(labels == id)[0]
+
+        X += list(embeddings[idx])
+        y += list(labels[idx])
+
+
+    return np.asarray(X), np.asarray(y)
