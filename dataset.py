@@ -117,6 +117,8 @@ def splitGroups(embeddings, labels, need_classes, classes, groups, suffle=True):
     return X_train, X_test, y_train, y_test
 
 
+
+
 def onlyGroup(embeddings, labels, need_classes, classes):
 
     X, y = [], []
@@ -130,3 +132,4 @@ def onlyGroup(embeddings, labels, need_classes, classes):
 
 
     return np.asarray(X), np.asarray(y)
+

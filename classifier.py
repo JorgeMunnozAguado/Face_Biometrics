@@ -121,7 +121,8 @@ def classifier(X_train, X_test, y_train, y_test, output_size, title, batch_size=
 
 
 
-def train(X_train, X_test, output_size, batch_size=30, verbose=0):
+def train(X_train, y_train, output_size, epochs=50, batch_size=30, verbose=0):
+
 
     # Prepare data
     X_train = np.expand_dims(X_train, axis=0)
@@ -134,41 +135,43 @@ def train(X_train, X_test, output_size, batch_size=30, verbose=0):
 
 
     # Fit model to data
-    history = model.fit(X_train, y_train, batch_size=batch_size, epochs=50, verbose=verbose)
+    history = model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs, verbose=verbose)
 
     return model, history
 
 
-def evaluate(y_train, y_test, model):
+
+def evaluate(X_test, y_test, model, verbose=0):
 
     # Prepare data
     X_test  = np.expand_dims(X_test, axis=0)
     y_test  = np.expand_dims(y_test, axis=0)
 
     # Evaluate model
-    loss, accuracy = model.evaluate(X_test, y_test)
+    loss, accuracy = model.evaluate(X_test, y_test, verbose=verbose)
 
     return loss, accuracy
+
 
 
 def split_classes(csv_file):
 
     embeddings, labels = loadData(csv_file, dtypes)
 
+    data_dict = {}
 
-    for j, cl, id in enumerate(classes_race.items()):
 
-        race = label_race[j]
+    for cl, id in classes.items():
 
-        #classes_list = searchDict(id, classes_race)
+        
+        embeddings_cl, labels_cl = onlyGroup(embeddings, labels, [id], classes)
 
-        embeddings, labels = onlyGroup(embeddings, labels, [id], classes)
+        X_train, X_test, y_train, y_test = train_test_split(embeddings_cl, labels_cl, test_size=250)
 
-        print(embeddings.shape, labels.shape)
+        data_dict[cl] = {'train': [X_train, y_train], 'test': [X_test, y_test]}
 
-        X_train, X_test, y_train, y_test = train_test_split(embeddings, labels, test_size=250)
 
-        print(X_train.shape, X_test.shape)
+    return data_dict
 
 
 if __name__ == '__main__':
