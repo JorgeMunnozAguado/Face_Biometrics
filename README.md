@@ -26,7 +26,7 @@ N : Negro
 
 # Resultados 
 
-
+```
 Model trained with Asiaticos       accuracy (loss):
   -> test asiaticos: 0.98 (0.5152)
   -> test blancos: 0.87 (0.5656)
@@ -46,3 +46,4 @@ Model trained with Negros       accuracy (loss):
   -> test blancos: 0.92 (0.4587)
   -> test negros: 0.96 (0.4279)
 ---------------------------------------------
+```
