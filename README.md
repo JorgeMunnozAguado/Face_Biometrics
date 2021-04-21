@@ -24,7 +24,7 @@ N : Negro
 
 
 
-# Resultados 
+# Resultados
 
 ```
 Model trained with Asiaticos       accuracy (loss):
@@ -47,3 +47,7 @@ Model trained with Negros       accuracy (loss):
   -> test negros: 0.96 (0.4279)
 ---------------------------------------------
 ```
+
+# Grad-cam
+
+https://keras.io/examples/vision/grad_cam/
