@@ -7,17 +7,21 @@ from tensorflow import keras
 from IPython.display import Image, display
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-# from keras.models import Model, Sequential
+# from keras.models import Sequential
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, Flatten, Lambda, Activation, ActivityRegularization
 from keras_vggface.vggface import VGGFace
 
 from embeddings import loadImage
-from classifier import evaluate, defineModel, loadModel
+from classifier import evaluate, defineModel, loadModel, completeModel
 
 
 def get_img_array(img_path, size):
     # `img` is a PIL image of size 299x299
     img = keras.preprocessing.image.load_img(img_path, target_size=size)
+
+    plt.imshow(img)
+    plt.show()
+
     # `array` is a float32 Numpy array of shape (299, 299, 3)
     array = keras.preprocessing.image.img_to_array(img)
     # We add a dimension to transform our array into a "batch"
@@ -26,41 +30,25 @@ def get_img_array(img_path, size):
     return array
 
 
-def make_gradcam_heatmap(img_array, backbone, classifier, pred_index=None):
-
-    backbone.summary()
-    print("-----------------------------")
-    print("-----------------------------")
-    print("-----------------------------")
-    print("-----------------------------")
-    print("-----------------------------")
-    classifier.summary()
-
-
+def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None):
     # First, we create a model that maps the input image to the activations
     # of the last conv layer as well as the output predictions
     grad_model = tf.keras.models.Model(
-        [backbone.inputs, classifier.inputs], [backbone.output, classifier.output]
+        [model.inputs], [model.get_layer(last_conv_layer_name).output, model.output]
     )
-
-
-    print("-----------------------------")
-    print("-----------------------------")
-    print("-----------------------------")
-    print("-----------------------------")
-    print("-----------------------------")
-    grad_model.summary()
-
 
     # Then, we compute the gradient of the top predicted class for our input image
     # with respect to the activations of the last conv layer
     with tf.GradientTape() as tape:
-
         last_conv_layer_output, preds = grad_model(img_array)
+
+        print('--------->>', preds)
 
         if pred_index is None:
             pred_index = tf.argmax(preds[0])
         class_channel = preds[:, pred_index]
+
+        print(class_channel)
 
     # This is the gradient of the output neuron (top predicted or chosen)
     # with regard to the output feature map of the last conv layer
@@ -75,6 +63,9 @@ def make_gradcam_heatmap(img_array, backbone, classifier, pred_index=None):
     # then sum all the channels to obtain the heatmap class activation
     last_conv_layer_output = last_conv_layer_output[0]
     heatmap = last_conv_layer_output @ pooled_grads[..., tf.newaxis]
+    print('---------')
+    print(heatmap)
+    print('---------')
     heatmap = tf.squeeze(heatmap)
 
     # For visualization purpose, we will also normalize the heatmap between 0 & 1
@@ -121,29 +112,72 @@ if __name__ == '__main__':
     # Prepare image
     # img_array = preprocess_input(get_img_array(img_path, size=img_size))
 
+    title = 'Asiatico'
     image_size = 224
+    image_size_t = (224, 224)
     path = '4K_120/HA4K_120/10011748@N08_identity_0'
 
-    img, _ = loadImage(path, image_size)
+    img, img_path = loadImage(path, image_size)
+    img_array = get_img_array(img_path, image_size_t)
+
+    print(img_array.shape)
+    print(img_array)
+
+    # plt.imshow(img)
+    # plt.show()
+
+    preprocess_input = keras.applications.xception.preprocess_input
+    # decode_predictions = keras.applications.xception.decode_predictions
+
+    img_array = preprocess_input(img_array)
 
 
+    model_base = completeModel(2)
 
+    model_simple = defineModel((None, 2048),2)
+    model_simple = loadModel(model_simple, title + '_checkpoint_model')
+
+
+    model_base.layers[-1].set_weights(model_simple.layers[-1].get_weights())
+    model_base.layers[-2].set_weights(model_simple.layers[-2].get_weights())
+    model_base.layers[-3].set_weights(model_simple.layers[-3].get_weights())
+
+
+    # evaluate(img_array, [0], model_base)
 
     # LOAD MODEL
-    title = 'Asiatico'
 
-    resnet = VGGFace(model='resnet50')
-    last_layer = resnet.get_layer('avg_pool').output
-    feature_layer = Flatten(name='flatten')(last_layer)
-    backbone = tf.keras.models.Model(resnet.input, feature_layer)
+    # resnet = VGGFace(model='resnet50')
+    # last_layer = resnet.get_layer('avg_pool').output
+    # feature_layer = Flatten(name='flatten')(last_layer)
 
-    classifier = defineModel((None, 2048, ), 2)
-    classifier = loadModel(classifier, title + '_checkpoint_model')
+    # backbone = tf.keras.models.Model(resnet.input, feature_layer)
 
 
+    # x = Dense(1000)(backbone.output)
+    # x = Dense(100, activation='sigmoid')(x)
+    # x = Dense(2, activation='softmax')(x)
 
-    print(backbone)
-    print(backbone.output)
+    # model_base = tf.keras.models.Model(backbone.input, x)
+
+
+    # model_base.summary()
+    # model_base = loadModel(model_base, title + '_checkpoint_model')
+    # model_base.summary()
+    # model_base.summary()
+
+    # classifier = defineModel(feature_layer.shape, 2)
+    # classifier = loadModel(classifier, title + '_checkpoint_model')
+
+    # classifier = classifier(backbone)
+
+
+    # model_base = classifier()
+
+
+    # print(a)
+    # print(backbone)
+    # print(backbone.output)
 
     # Remove last layer's softmax
     # model.layers[-1].activation = None
@@ -153,7 +187,15 @@ if __name__ == '__main__':
     # print("Predicted:", decode_predictions(preds, top=1)[0])
 
     # Generate class activation heatmap
-    heatmap = make_gradcam_heatmap(img, backbone, classifier)
+    heatmap = make_gradcam_heatmap(img_array, model_base, 'avg_pool')
+
+    print('------------------------')
+    print('------------------------')
+    print(heatmap.shape)
+    print(heatmap)
+
+
+    save_and_display_gradcam(img_path, heatmap)
 
     # Display heatmap
     plt.matshow(heatmap)

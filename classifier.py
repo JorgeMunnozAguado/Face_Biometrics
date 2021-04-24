@@ -2,8 +2,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from keras.models import Sequential
-from keras.layers import Dense
+import tensorflow as tf
+
+from keras.models import Sequential, Model
+from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, Flatten, Lambda, Activation, ActivityRegularization
 from keras.optimizers import Adam
 from keras.losses import CategoricalCrossentropy
 from keras.utils import to_categorical
@@ -18,9 +20,9 @@ def defineModel(input_shape, num_outputs):
 
     nn = Sequential()
 
-    nn.add(Dense(1000, input_shape=input_shape))
-    nn.add(Dense(100, activation='sigmoid'))
-    nn.add(Dense(num_outputs, activation='softmax'))
+    nn.add(Dense(1000, input_shape=input_shape, name='dens_1_class'))
+    nn.add(Dense(100, activation='sigmoid', name='dens_2_class'))
+    nn.add(Dense(num_outputs, activation='softmax', name='dens_3_class'))
 
     nn.compile(optimizer=Adam(learning_rate=0.001), loss=CategoricalCrossentropy(), metrics='accuracy')
 
@@ -29,13 +31,23 @@ def defineModel(input_shape, num_outputs):
 def completeModel(num_outputs):
 
     resnet = VGGFace(model='resnet50')
-
-    if verbose:  resnet.summary()
-
-    # Select the lat leayer as feature embedding
     last_layer = resnet.get_layer('avg_pool').output
     feature_layer = Flatten(name='flatten')(last_layer)
-    model_vgg = Model(resnet.input, feature_layer)
+
+    backbone = tf.keras.models.Model(resnet.input, feature_layer)
+
+    # Freeze backbone layers
+    for layer in backbone.layers:
+        layer.trainable = False
+
+    x = Dense(1000, name='dens_1_class')(backbone.output)
+    x = Dense(100, activation='sigmoid', name='dens_2_class')(x)
+    x = Dense(2, activation='softmax', name='dens_3_class')(x)
+
+    model_base = tf.keras.models.Model(backbone.input, x)
+
+
+    return model_base
 
 
 
@@ -176,6 +188,7 @@ def saveModel(model, filename='model_checkpoint'):
 def loadModel(model, filename):
 
     model.load_weights('checkpoints/' + filename).expect_partial()
+    # model.layers[-3:].load_weights('checkpoints/' + filename, by_name=True).expect_partial()
 
     return model
 
