@@ -1,4 +1,20 @@
 
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+
+# Display
+from IPython.display import Image, display
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+# from keras.models import Model, Sequential
+from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, Flatten, Lambda, Activation, ActivityRegularization
+from keras_vggface.vggface import VGGFace
+
+from embeddings import loadImage
+from classifier import evaluate, defineModel, loadModel
+
+
 def get_img_array(img_path, size):
     # `img` is a PIL image of size 299x299
     img = keras.preprocessing.image.load_img(img_path, target_size=size)
@@ -10,17 +26,38 @@ def get_img_array(img_path, size):
     return array
 
 
-def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None):
+def make_gradcam_heatmap(img_array, backbone, classifier, pred_index=None):
+
+    backbone.summary()
+    print("-----------------------------")
+    print("-----------------------------")
+    print("-----------------------------")
+    print("-----------------------------")
+    print("-----------------------------")
+    classifier.summary()
+
+
     # First, we create a model that maps the input image to the activations
     # of the last conv layer as well as the output predictions
     grad_model = tf.keras.models.Model(
-        [model.inputs], [model.get_layer(last_conv_layer_name).output, model.output]
+        [backbone.inputs, classifier.inputs], [backbone.output, classifier.output]
     )
+
+
+    print("-----------------------------")
+    print("-----------------------------")
+    print("-----------------------------")
+    print("-----------------------------")
+    print("-----------------------------")
+    grad_model.summary()
+
 
     # Then, we compute the gradient of the top predicted class for our input image
     # with respect to the activations of the last conv layer
     with tf.GradientTape() as tape:
+
         last_conv_layer_output, preds = grad_model(img_array)
+
         if pred_index is None:
             pred_index = tf.argmax(preds[0])
         class_channel = preds[:, pred_index]
@@ -77,28 +114,49 @@ def save_and_display_gradcam(img_path, heatmap, cam_path="cam.jpg", alpha=0.4):
     display(Image(cam_path))
 
 
-save_and_display_gradcam(img_path, heatmap)
-
 
 
 if __name__ == '__main__':
 
     # Prepare image
-    img_array = preprocess_input(get_img_array(img_path, size=img_size))
+    # img_array = preprocess_input(get_img_array(img_path, size=img_size))
 
-    # Make model
-    model = model_builder(weights="imagenet")
+    image_size = 224
+    path = '4K_120/HA4K_120/10011748@N08_identity_0'
+
+    img, _ = loadImage(path, image_size)
+
+
+
+
+    # LOAD MODEL
+    title = 'Asiatico'
+
+    resnet = VGGFace(model='resnet50')
+    last_layer = resnet.get_layer('avg_pool').output
+    feature_layer = Flatten(name='flatten')(last_layer)
+    backbone = tf.keras.models.Model(resnet.input, feature_layer)
+
+    classifier = defineModel((None, 2048, ), 2)
+    classifier = loadModel(classifier, title + '_checkpoint_model')
+
+
+
+    print(backbone)
+    print(backbone.output)
 
     # Remove last layer's softmax
-    model.layers[-1].activation = None
+    # model.layers[-1].activation = None
 
     # Print what the top predicted class is
-    preds = model.predict(img_array)
-    print("Predicted:", decode_predictions(preds, top=1)[0])
+    # preds = model.predict(img_array)
+    # print("Predicted:", decode_predictions(preds, top=1)[0])
 
     # Generate class activation heatmap
-    heatmap = make_gradcam_heatmap(img_array, model, last_conv_layer_name)
+    heatmap = make_gradcam_heatmap(img, backbone, classifier)
 
     # Display heatmap
     plt.matshow(heatmap)
     plt.show()
+
+    # save_and_display_gradcam('img/heatmap.jpg', heatmap)

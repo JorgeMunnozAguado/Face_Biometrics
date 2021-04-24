@@ -3,7 +3,7 @@ import numpy as np
 from keras.utils import to_categorical
 
 
-from classifier import split_classes, train, evaluate
+from classifier import split_classes, train, evaluate, defineModel, saveModel, loadModel
 from dataset import suffle_array, label_race
 
 def unique_values(dict):
@@ -41,6 +41,8 @@ def train_test_group(data_dict, classes, title):
     X_train, y_train = dict2list(data_dict, classes, 'train')
 
     model, history = train(X_train, y_train, 2)
+    # model = defineModel((None, X_train.shape[1], ), 2)
+    # model = loadModel(model, title + '_checkpoint_model')
 
 
     X_test_asia, y_test_asia = dict2list(data_dict, {'HA':0, 'MA':1}, 'test')
@@ -60,6 +62,8 @@ def train_test_group(data_dict, classes, title):
     print("  -> test negros: %.2f (%.4f)" % (accuracy_negr, loss_negr))
 
     print('---------------------------------------------\n\n')
+
+    saveModel(model, title + '_checkpoint_model')
 
 
 

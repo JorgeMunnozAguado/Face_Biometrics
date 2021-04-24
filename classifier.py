@@ -9,6 +9,8 @@ from keras.losses import CategoricalCrossentropy
 from keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
 
+from keras_vggface.vggface import VGGFace
+
 from dataset import loadData, changeGroups, splitGroups, onlyGroup, searchDict, dtypes
 from dataset import classes, classes_race, classes_gender
 
@@ -23,6 +25,18 @@ def defineModel(input_shape, num_outputs):
     nn.compile(optimizer=Adam(learning_rate=0.001), loss=CategoricalCrossentropy(), metrics='accuracy')
 
     return nn
+
+def completeModel(num_outputs):
+
+    resnet = VGGFace(model='resnet50')
+
+    if verbose:  resnet.summary()
+
+    # Select the lat leayer as feature embedding
+    last_layer = resnet.get_layer('avg_pool').output
+    feature_layer = Flatten(name='flatten')(last_layer)
+    model_vgg = Model(resnet.input, feature_layer)
+
 
 
 def plotHistory(history, title):
@@ -128,9 +142,10 @@ def train(X_train, y_train, output_size, epochs=50, batch_size=30, verbose=0):
     X_train = np.expand_dims(X_train, axis=0)
     y_train = np.expand_dims(y_train, axis=0)
 
+    shape = (None, X_train.shape[2], )
 
     # Define model
-    model = defineModel(X_train.shape[1:], output_size)
+    model = defineModel(shape, output_size)
     if verbose:  model.summary()
 
 
@@ -152,6 +167,17 @@ def evaluate(X_test, y_test, model, verbose=0):
 
     return loss, accuracy
 
+
+def saveModel(model, filename='model_checkpoint'):
+
+    model.save_weights('checkpoints/' + filename)
+
+
+def loadModel(model, filename):
+
+    model.load_weights('checkpoints/' + filename).expect_partial()
+
+    return model
 
 
 def split_classes(csv_file):
