@@ -117,74 +117,34 @@ if __name__ == '__main__':
     image_size_t = (224, 224)
     path = '4K_120/HA4K_120/10011748@N08_identity_0'
 
+    preprocess_input = keras.applications.xception.preprocess_input
+
+
     img, img_path = loadImage(path, image_size)
     img_array = get_img_array(img_path, image_size_t)
-
-    print(img_array.shape)
-    print(img_array)
-
-    # plt.imshow(img)
-    # plt.show()
-
-    preprocess_input = keras.applications.xception.preprocess_input
-    # decode_predictions = keras.applications.xception.decode_predictions
-
     img_array = preprocess_input(img_array)
 
 
+
+    ###      LOAD MODEL
+    ###
+    #########################################################################
+    #########################################################################
+
+    # Backbone + classification layers
     model_base = completeModel(2)
 
+    # Define auxiliar model
     model_simple = defineModel((None, 2048),2)
     model_simple = loadModel(model_simple, title + '_checkpoint_model')
 
-
+    # Load weights (from small model)
     model_base.layers[-1].set_weights(model_simple.layers[-1].get_weights())
     model_base.layers[-2].set_weights(model_simple.layers[-2].get_weights())
     model_base.layers[-3].set_weights(model_simple.layers[-3].get_weights())
 
 
-    # evaluate(img_array, [0], model_base)
 
-    # LOAD MODEL
-
-    # resnet = VGGFace(model='resnet50')
-    # last_layer = resnet.get_layer('avg_pool').output
-    # feature_layer = Flatten(name='flatten')(last_layer)
-
-    # backbone = tf.keras.models.Model(resnet.input, feature_layer)
-
-
-    # x = Dense(1000)(backbone.output)
-    # x = Dense(100, activation='sigmoid')(x)
-    # x = Dense(2, activation='softmax')(x)
-
-    # model_base = tf.keras.models.Model(backbone.input, x)
-
-
-    # model_base.summary()
-    # model_base = loadModel(model_base, title + '_checkpoint_model')
-    # model_base.summary()
-    # model_base.summary()
-
-    # classifier = defineModel(feature_layer.shape, 2)
-    # classifier = loadModel(classifier, title + '_checkpoint_model')
-
-    # classifier = classifier(backbone)
-
-
-    # model_base = classifier()
-
-
-    # print(a)
-    # print(backbone)
-    # print(backbone.output)
-
-    # Remove last layer's softmax
-    # model.layers[-1].activation = None
-
-    # Print what the top predicted class is
-    # preds = model.predict(img_array)
-    # print("Predicted:", decode_predictions(preds, top=1)[0])
 
     # Generate class activation heatmap
     heatmap = make_gradcam_heatmap(img_array, model_base, 'avg_pool')
