@@ -19,8 +19,8 @@ def get_img_array(img_path, size):
     # `img` is a PIL image of size 299x299
     img = keras.preprocessing.image.load_img(img_path, target_size=size)
 
-    plt.imshow(img)
-    plt.show()
+    # plt.imshow(img)
+    # plt.show()
 
     # `array` is a float32 Numpy array of shape (299, 299, 3)
     array = keras.preprocessing.image.img_to_array(img)
@@ -143,16 +143,14 @@ if __name__ == '__main__':
     model_base.layers[-2].set_weights(model_simple.layers[-2].get_weights())
     model_base.layers[-3].set_weights(model_simple.layers[-3].get_weights())
 
+    model_base.summary()
+
 
 
 
     # Generate class activation heatmap
-    heatmap = make_gradcam_heatmap(img_array, model_base, 'avg_pool')
-
-    print('------------------------')
-    print('------------------------')
-    print(heatmap.shape)
-    print(heatmap)
+    # heatmap = make_gradcam_heatmap(img_array, model_base, 'avg_pool')
+    heatmap = make_gradcam_heatmap(img_array, model_base, 'conv5_3_1x1_increase/bn')
 
 
     save_and_display_gradcam(img_path, heatmap)
@@ -161,4 +159,6 @@ if __name__ == '__main__':
     plt.matshow(heatmap)
     plt.show()
 
-    # save_and_display_gradcam('img/heatmap.jpg', heatmap)
+    # TODO - save heatmap
+
+    save_and_display_gradcam(img_path, heatmap)
