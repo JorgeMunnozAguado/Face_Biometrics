@@ -106,6 +106,31 @@ def save_and_display_gradcam(img_path, heatmap, cam_path="cam.jpg", alpha=0.4):
 
 
 
+def model_load(title, verbose=0):
+
+    # Backbone + classification layers
+    model_base = completeModel(2)
+
+    # Define auxiliar model
+    model_simple = defineModel((None, 2048),2)
+    model_simple = loadModel(model_simple, title + '_checkpoint_model')
+
+    # Load weights (from small model)
+    model_base.layers[-1].set_weights(model_simple.layers[-1].get_weights())
+    model_base.layers[-2].set_weights(model_simple.layers[-2].get_weights())
+    model_base.layers[-3].set_weights(model_simple.layers[-3].get_weights())
+
+    if verbose: model_base.summary()
+
+
+    return model_base
+
+
+
+def image_load(path):
+    pass
+
+
 
 if __name__ == '__main__':
 
@@ -125,27 +150,7 @@ if __name__ == '__main__':
     img_array = preprocess_input(img_array)
 
 
-
-    ###      LOAD MODEL
-    ###
-    #########################################################################
-    #########################################################################
-
-    # Backbone + classification layers
-    model_base = completeModel(2)
-
-    # Define auxiliar model
-    model_simple = defineModel((None, 2048),2)
-    model_simple = loadModel(model_simple, title + '_checkpoint_model')
-
-    # Load weights (from small model)
-    model_base.layers[-1].set_weights(model_simple.layers[-1].get_weights())
-    model_base.layers[-2].set_weights(model_simple.layers[-2].get_weights())
-    model_base.layers[-3].set_weights(model_simple.layers[-3].get_weights())
-
-    model_base.summary()
-
-
+    model_base = model_load(title)
 
 
     # Generate class activation heatmap
