@@ -1,4 +1,6 @@
 
+import os
+import random
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -11,6 +13,7 @@ import matplotlib.cm as cm
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, Flatten, Lambda, Activation, ActivityRegularization
 from keras_vggface.vggface import VGGFace
 
+from dataset import classes
 from embeddings import loadImage
 from classifier import evaluate, defineModel, loadModel, completeModel
 
@@ -42,13 +45,13 @@ def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None
     with tf.GradientTape() as tape:
         last_conv_layer_output, preds = grad_model(img_array)
 
-        print('--------->>', preds)
+        # print('--------->>', preds)
 
         if pred_index is None:
             pred_index = tf.argmax(preds[0])
         class_channel = preds[:, pred_index]
 
-        print(class_channel)
+        # print(class_channel)
 
     # This is the gradient of the output neuron (top predicted or chosen)
     # with regard to the output feature map of the last conv layer
@@ -63,9 +66,9 @@ def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None
     # then sum all the channels to obtain the heatmap class activation
     last_conv_layer_output = last_conv_layer_output[0]
     heatmap = last_conv_layer_output @ pooled_grads[..., tf.newaxis]
-    print('---------')
-    print(heatmap)
-    print('---------')
+    # print('---------')
+    # print(heatmap)
+    # print('---------')
     heatmap = tf.squeeze(heatmap)
 
     # For visualization purpose, we will also normalize the heatmap between 0 & 1
@@ -98,6 +101,8 @@ def save_and_display_gradcam(img_path, heatmap, cam_path="cam.jpg", alpha=0.4):
     superimposed_img = jet_heatmap * alpha + img
     superimposed_img = keras.preprocessing.image.array_to_img(superimposed_img)
 
+    cam_path = 'img/' + cam_path
+
     # Save the superimposed image
     superimposed_img.save(cam_path)
 
@@ -127,21 +132,9 @@ def model_load(title, verbose=0):
 
 
 
-def image_load(path):
-    pass
+def apply_grad_cam(path, class_name, model_name, image_size=224):
 
-
-
-if __name__ == '__main__':
-
-    # Prepare image
-    # img_array = preprocess_input(get_img_array(img_path, size=img_size))
-
-    title = 'Asiatico'
-    image_size = 224
-    image_size_t = (224, 224)
-    path = '4K_120/HA4K_120/10011748@N08_identity_0'
-
+    image_size_t = (image_size, image_size, )
     preprocess_input = keras.applications.xception.preprocess_input
 
 
@@ -150,11 +143,10 @@ if __name__ == '__main__':
     img_array = preprocess_input(img_array)
 
 
-    model_base = model_load(title)
+    model_base = model_load(model_name)
 
 
     # Generate class activation heatmap
-    # heatmap = make_gradcam_heatmap(img_array, model_base, 'avg_pool')
     heatmap = make_gradcam_heatmap(img_array, model_base, 'conv5_3_1x1_increase/bn')
 
 
@@ -162,8 +154,42 @@ if __name__ == '__main__':
 
     # Display heatmap
     plt.matshow(heatmap)
-    plt.show()
+    # plt.show()
+    plt.savefig('img/' + model_name+'_'+class_name+'_heat.jpg')
+    plt.close()
 
     # TODO - save heatmap
 
-    save_and_display_gradcam(img_path, heatmap)
+    save_and_display_gradcam(img_path, heatmap, cam_path=model_name+'_'+class_name+'_cam.jpg')
+
+
+
+if __name__ == '__main__':
+
+    model_names = ['Asiatico', 'Blanco', 'Negro', 'TODO']
+
+    for model in model_names:
+
+
+        for name in classes.keys():
+
+            path_class = '4K_120/' + name.upper() + '4K_120'
+
+
+            identities = os.listdir(path_class)
+
+            selected = random.choice(identities)
+
+            # print(path_class, selected)
+            # print(identities)
+
+            path = os.path.join(path_class, selected)
+
+            apply_grad_cam(path, name, model)
+
+    # title = 'Asiatico'
+    # image_size = 224
+    # image_size_t = (224, 224)
+    # path = '4K_120/HA4K_120/10011748@N08_identity_0'
+
+    
