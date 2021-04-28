@@ -6,3 +6,6 @@ Session_Face_Biometrics_Framework.pdf
 __pycache__/
 
 checkpoints/
+quick_draw/quickdraw_22_DB/
+*.zip
+*.npy

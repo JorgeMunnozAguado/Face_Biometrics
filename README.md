@@ -3,10 +3,11 @@ conda create -y --name faceBio python=3.6
 
 conda activate faceBio
 
-conda install -y keras-gpu tensorflow-gpu
+#conda install -y keras-gpu tensorflow-gpu
+conda install -y keras-gpu==2.3.1 tensorflow-gpu==2.1.0
 conda install numpy pillow
 pip install opencv-python keras-vggface Keras-Applications
-pip install pandas scikit-learn matplotlib ipython
+pip install pandas scikit-learn matplotlib ipython seaborn
 
 
 https://dauam-my.sharepoint.com/:u:/g/personal/aythami_morales_uam_es/ERd0YZG26FlGl1hr9nQtd54BNmW2XMwuzS-LXh0DoMp2ig?e=f8jD7w
@@ -21,6 +22,12 @@ A : Asiático
 B : Blanco
 N : Negro
 
+# Second task dataset
+
+https://github.com/googlecreativelab/quickdraw-dataset
+
+con problemas en el aprendizaje -> max(0, loss), loss = d(anchor, negative) - d(anchor, positive) + alfa   ->   alfa es la distancia mínima entre clases
+Se utilizan bottlenecks ya que t-SNE es un aprendizaje no supervisado.
 
 
 
