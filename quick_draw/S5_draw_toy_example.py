@@ -13,27 +13,30 @@ N=100 #number of samples per class
 
 img_rows, img_cols = 28, 28
 
+
+path = 'quickdraw_22_DB/'
+
 #Load images
-X1=np.load('full_numpy_bitmap_aircraft carrier.npy')
-X2=np.load('full_numpy_bitmap_airplane.npy')
-X3=np.load('full_numpy_bitmap_alarm clock.npy')
-X4=np.load('full_numpy_bitmap_ambulance.npy')
-X5=np.load('full_numpy_bitmap_angel.npy')
-X6=np.load('full_numpy_bitmap_animal migration.npy')
-X7=np.load('full_numpy_bitmap_ant.npy')
-X8=np.load('full_numpy_bitmap_anvil.npy')
-X9=np.load('full_numpy_bitmap_apple.npy')
-X10=np.load('full_numpy_bitmap_arm.npy')
-X11=np.load('full_numpy_bitmap_asparagus.npy')
-X12=np.load('full_numpy_bitmap_axe.npy')
-X13=np.load('full_numpy_bitmap_backpack.npy')
-X14=np.load('full_numpy_bitmap_banana.npy')
-X15=np.load('full_numpy_bitmap_bandage.npy')
-X16=np.load('full_numpy_bitmap_The Great Wall of China.npy')
-X17=np.load('full_numpy_bitmap_The Eiffel Tower.npy')
-X18=np.load('full_numpy_bitmap_book.npy')
-X19=np.load('full_numpy_bitmap_barn.npy')
-X20=np.load('full_numpy_bitmap_bird.npy')
+X1=np.load(path + 'full_numpy_bitmap_aircraft carrier.npy')
+X2=np.load(path + 'full_numpy_bitmap_airplane.npy')
+X3=np.load(path + 'full_numpy_bitmap_alarm clock.npy')
+X4=np.load(path + 'full_numpy_bitmap_ambulance.npy')
+X5=np.load(path + 'full_numpy_bitmap_angel.npy')
+X6=np.load(path + 'full_numpy_bitmap_animal migration.npy')
+X7=np.load(path + 'full_numpy_bitmap_ant.npy')
+X8=np.load(path + 'full_numpy_bitmap_anvil.npy')
+X9=np.load(path + 'full_numpy_bitmap_apple.npy')
+X10=np.load(path + 'full_numpy_bitmap_arm.npy')
+X11=np.load(path + 'full_numpy_bitmap_asparagus.npy')
+X12=np.load(path + 'full_numpy_bitmap_axe.npy')
+X13=np.load(path + 'full_numpy_bitmap_backpack.npy')
+X14=np.load(path + 'full_numpy_bitmap_banana.npy')
+X15=np.load(path + 'full_numpy_bitmap_bandage.npy')
+X16=np.load(path + 'full_numpy_bitmap_The Great Wall of China.npy')
+X17=np.load(path + 'full_numpy_bitmap_The Eiffel Tower.npy')
+X18=np.load(path + 'full_numpy_bitmap_book.npy')
+X19=np.load(path + 'full_numpy_bitmap_barn.npy')
+X20=np.load(path + 'full_numpy_bitmap_bird.npy')
 
 #Rechape images into 2D space
 X1=X1.reshape(X1.shape[0], img_rows, img_cols)

@@ -5,7 +5,7 @@ conda activate faceBio
 
 #conda install -y keras-gpu tensorflow-gpu
 conda install -y keras-gpu==2.3.1 tensorflow-gpu==2.1.0
-conda install numpy pillow
+conda install -y numpy pillow
 pip install opencv-python keras-vggface Keras-Applications
 pip install pandas scikit-learn matplotlib ipython seaborn
 

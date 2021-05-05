@@ -59,14 +59,14 @@ def scatter(x, labels, subtitle=None,M=14):
     plt.savefig(subtitle)
 
 
-def data_generator_clusters(X, batch_size,NUM_SAMPLES_USER):
+def data_generator_clusters(X, batch_size,NUM_SAMPLES_USER, size_data):
         
     # Create empty arrays to contain batch of features and labels#
-    batch_features_positive = np.zeros((batch_size, 28, 28,1))
-    batch_features_negative = np.zeros((batch_size, 28, 28,1))
+    batch_features_positive = np.zeros((batch_size, size_data,1))
+    batch_features_negative = np.zeros((batch_size, size_data,1))
     
-    batch_features_positive2 = np.zeros((batch_size, 28, 28,1))
-    batch_features_negative2 = np.zeros((batch_size, 28, 28,1))       
+    batch_features_positive2 = np.zeros((batch_size, size_data,1))
+    batch_features_negative2 = np.zeros((batch_size, size_data,1))       
         
     batch_labels = np.zeros((batch_size,1))
     M=X.shape[0]
@@ -79,14 +79,14 @@ def data_generator_clusters(X, batch_size,NUM_SAMPLES_USER):
             index_sample = random.sample(range(0,NUM_SAMPLES_USER), NUM_SAMPLES_USER)#np.random.randint(NUM_SAMPLES_USER)                
              # La muestra positiva siempre del usuario genuino
             genuine_samples = X[genuine_user]
-            positive_sample = genuine_samples[index_sample[0]][:,:,:]
+            positive_sample = genuine_samples[index_sample[0]][:,:]
             #Zero padding
             batch_features_positive[i] = positive_sample          
             
             # La muestra negativa puede ser de un usuario impostor o del genuinao
             batch_labels[i] = 1#np.random.randint(2)
             if batch_labels[i] == 0: #Muestra del usuario genuino 
-                negative_sample = genuine_samples[index_sample[0]][:,:,:]                
+                negative_sample = genuine_samples[index_sample[0]][:,:]
             else: #Muestra del usuario impostor                        
                 impostor_user = random.choice(range(M))
                 
@@ -94,25 +94,25 @@ def data_generator_clusters(X, batch_size,NUM_SAMPLES_USER):
                     impostor_user = random.choice(range(M))                                        
                 
                 impostor_samples = X[impostor_user]
-                negative_sample = impostor_samples[index_sample[0]][:,:,:]
+                negative_sample = impostor_samples[index_sample[0]][:,:]
             #Zero padding
             batch_features_negative[i] = negative_sample
             
                 
             ######################   2    ####################################    
-            positive_sample = genuine_samples[index_sample[1]][:,:,:]
+            positive_sample = genuine_samples[index_sample[1]][:,:]
             #Zero padding
             batch_features_positive2[i] = positive_sample  
             
             if batch_labels[i] == 0: #Muestra del usuario genuino               
                 
-                negative_sample = genuine_samples[index_sample[1]][:,:,:]                
+                negative_sample = genuine_samples[index_sample[1]][:,:]                
             else: #Muestra del usuario impostor                
                 while genuine_user == impostor_user:
                     impostor_user = random.choice(range(M))                                        
                 
                 impostor_samples = X[impostor_user]
-                negative_sample = impostor_samples[index_sample[1]][:,:,:]
+                negative_sample = impostor_samples[index_sample[1]][:,:]
             #Zero padding
             batch_features_negative2[i] = negative_sample 
             
@@ -147,23 +147,63 @@ def contrastive_loss_triplet(inputs, dist='euclidean', margin= 'maxplus',  alpha
 
 
 N=50 #Número de muestras por clase a usar
-M=10 #Número de clases
+M=6 #Número de clases
 N_test=200 #Numero de muestras de test
 img_rows, img_cols = 28, 28
 
-path = 'quickdraw_22_DB/'
+path = 'quick_draw/quickdraw_22_DB/'
 
 #Load images
-X1=np.load(path + 'full_numpy_bitmap_aircraft carrier.npy')
-X2=np.load(path + 'full_numpy_bitmap_airplane.npy')
-X3=np.load(path + 'full_numpy_bitmap_alarm clock.npy')
-X4=np.load(path + 'full_numpy_bitmap_ambulance.npy')
-X5=np.load(path + 'full_numpy_bitmap_angel.npy')
-X6=np.load(path + 'full_numpy_bitmap_animal migration.npy')
-X7=np.load(path + 'full_numpy_bitmap_ant.npy')
-X8=np.load(path + 'full_numpy_bitmap_anvil.npy')
-X9=np.load(path + 'full_numpy_bitmap_apple.npy')
-X10=np.load(path + 'full_numpy_bitmap_arm.npy')
+# X1=np.load(path + 'full_numpy_bitmap_aircraft carrier.npy')
+# X2=np.load(path + 'full_numpy_bitmap_airplane.npy')
+# X3=np.load(path + 'full_numpy_bitmap_alarm clock.npy')
+# X4=np.load(path + 'full_numpy_bitmap_ambulance.npy')
+# X5=np.load(path + 'full_numpy_bitmap_angel.npy')
+# X6=np.load(path + 'full_numpy_bitmap_animal migration.npy')
+# X7=np.load(path + 'full_numpy_bitmap_ant.npy')
+# X8=np.load(path + 'full_numpy_bitmap_anvil.npy')
+# X9=np.load(path + 'full_numpy_bitmap_apple.npy')
+# X10=np.load(path + 'full_numpy_bitmap_arm.npy')
+
+
+
+# print('-------------------------------->', X1.shape)
+
+
+from classifier import split_classes, train, evaluate, defineModel, saveModel, loadModel
+# from dataset import suffle_array, label_race
+from task_4 import dict2list
+
+csv_file = '4K_120/embeddings.csv'
+
+data_dict = split_classes(csv_file)
+
+X1, _ = dict2list(data_dict, {'HA':0}, 'train')    # HA
+X2, _ = dict2list(data_dict, {'MA':0}, 'train')    # MA
+X3, _ = dict2list(data_dict, {'HB':0}, 'train')    # HB
+X4, _ = dict2list(data_dict, {'MB':0}, 'train')    # MB
+X5, _ = dict2list(data_dict, {'HN':0}, 'train')    # HN
+X6, _ = dict2list(data_dict, {'MN':0}, 'train')    # MN
+
+
+# print(X_train.shape)
+
+
+
+
+# print('-------------------------------->', X1.shape)
+
+
+
+
+
+
+
+
+
+
+
+
 #X11=np.load('full_numpy_bitmap_asparagus.npy')
 #X12=np.load('full_numpy_bitmap_axe.npy')
 #X13=np.load('full_numpy_bitmap_backpack.npy')
@@ -176,16 +216,16 @@ X10=np.load(path + 'full_numpy_bitmap_arm.npy')
 #X20=np.load('full_numpy_bitmap_bird.npy')
 
 #Reshape images into 2D space
-X1=X1.reshape(X1.shape[0], img_rows, img_cols)
-X2=X2.reshape(X2.shape[0], img_rows, img_cols)
-X3=X3.reshape(X3.shape[0], img_rows, img_cols)
-X4=X4.reshape(X4.shape[0], img_rows, img_cols)
-X5=X5.reshape(X5.shape[0], img_rows, img_cols)
-X6=X6.reshape(X6.shape[0], img_rows, img_cols)
-X7=X7.reshape(X7.shape[0], img_rows, img_cols)
-X8=X8.reshape(X8.shape[0], img_rows, img_cols)
-X9=X9.reshape(X9.shape[0], img_rows, img_cols)
-X10=X10.reshape(X10.shape[0], img_rows, img_cols)
+# X1=X1.reshape(X1.shape[0], img_rows, img_cols)
+# X2=X2.reshape(X2.shape[0], img_rows, img_cols)
+# X3=X3.reshape(X3.shape[0], img_rows, img_cols)
+# X4=X4.reshape(X4.shape[0], img_rows, img_cols)
+# X5=X5.reshape(X5.shape[0], img_rows, img_cols)
+# X6=X6.reshape(X6.shape[0], img_rows, img_cols)
+# X7=X7.reshape(X7.shape[0], img_rows, img_cols)
+# X8=X8.reshape(X8.shape[0], img_rows, img_cols)
+# X9=X9.reshape(X9.shape[0], img_rows, img_cols)
+# X10=X10.reshape(X10.shape[0], img_rows, img_cols)
 #X11=X11.reshape(X11.shape[0], img_rows, img_cols)
 #X12=X12.reshape(X12.shape[0], img_rows, img_cols)
 #X13=X13.reshape(X13.shape[0], img_rows, img_cols)
@@ -199,25 +239,25 @@ X10=X10.reshape(X10.shape[0], img_rows, img_cols)
 
 
 #Plot an example image
-fig = plt.figure()
-plt.imshow(255-X3[0], cmap='gray', interpolation='none')
-plt.xticks([])
-plt.yticks([])
+# fig = plt.figure()
+# plt.imshow(255-X3[0], cmap='gray', interpolation='none')
+# plt.xticks([])
+# plt.yticks([])
 
 #Create x_train and y_train arrays
-x_train=np.zeros((N*M,X1.shape[1],X1.shape[2]))
+x_train=np.zeros((N*M,X1.shape[1]))
 y_train=np.zeros((N*M,))
 for i in range(N):    
-    x_train[(i*M)+0,:,:]=X1[i,:,:]
-    x_train[(i*M)+1,:,:]=X2[i,:,:]
-    x_train[(i*M)+2,:,:]=X3[i,:,:]
-    x_train[(i*M)+3,:,:]=X4[i,:,:]
-    x_train[(i*M)+4,:,:]=X5[i,:,:]
-    x_train[(i*M)+5,:,:]=X6[i,:,:]
-    x_train[(i*M)+6,:,:]=X7[i,:,:]
-    x_train[(i*M)+7,:,:]=X8[i,:,:]
-    x_train[(i*M)+8,:,:]=X9[i,:,:]
-    x_train[(i*M)+9,:,:]=X10[i,:,:]
+    x_train[(i*M)+0,:]=X1[i,:]
+    x_train[(i*M)+1,:]=X2[i,:]
+    x_train[(i*M)+2,:]=X3[i,:]
+    x_train[(i*M)+3,:]=X4[i,:]
+    x_train[(i*M)+4,:]=X5[i,:]
+    x_train[(i*M)+5,:]=X6[i,:]
+    # x_train[(i*M)+6,:,:]=X7[i,:,:]
+    # x_train[(i*M)+7,:,:]=X8[i,:,:]
+    # x_train[(i*M)+8,:,:]=X9[i,:,:]
+    # x_train[(i*M)+9,:,:]=X10[i,:,:]
 #    x_train[(i*M)+10,:,:]=X11[i,:,:]
 #    x_train[(i*M)+11,:,:]=X12[i,:,:]
 #    x_train[(i*M)+12,:,:]=X13[i,:,:]
@@ -234,19 +274,20 @@ for i in range(N):
 y_train_labels=y_train
 
 
-x_test=np.zeros((N_test*M,X1.shape[1],X1.shape[2]))
+
+x_test=np.zeros((N_test*M,X1.shape[1]))
 y_test=np.zeros((N_test*M,))
 for i in range(N_test):    
-    x_test[(i*M)+0,:,:]=X1[i+N,:,:]
-    x_test[(i*M)+1,:,:]=X2[i+N,:,:]
-    x_test[(i*M)+2,:,:]=X3[i+N,:,:]
-    x_test[(i*M)+3,:,:]=X4[i+N,:,:]
-    x_test[(i*M)+4,:,:]=X5[i+N,:,:]
-    x_test[(i*M)+5,:,:]=X6[i+N,:,:]
-    x_test[(i*M)+6,:,:]=X7[i+N,:,:]
-    x_test[(i*M)+7,:,:]=X8[i+N,:,:]
-    x_test[(i*M)+8,:,:]=X9[i+N,:,:]
-    x_test[(i*M)+9,:,:]=X10[i+N,:,:]
+    x_test[(i*M)+0,:]=X1[i+N,:]
+    x_test[(i*M)+1,:]=X2[i+N,:]
+    x_test[(i*M)+2,:]=X3[i+N,:]
+    x_test[(i*M)+3,:]=X4[i+N,:]
+    x_test[(i*M)+4,:]=X5[i+N,:]
+    x_test[(i*M)+5,:]=X6[i+N,:]
+    # x_test[(i*M)+6,:,:]=X7[i+N,:,:]
+    # x_test[(i*M)+7,:,:]=X8[i+N,:,:]
+    # x_test[(i*M)+8,:,:]=X9[i+N,:,:]
+    # x_test[(i*M)+9,:,:]=X10[i+N,:,:]
 #    x_test[(i*M)+10,:,:]=X11[i+N,:,:]
 #    x_test[(i*M)+11,:,:]=X12[i+N,:,:]
 #    x_test[(i*M)+12,:,:]=X13[i+N,:,:]
@@ -264,17 +305,17 @@ y_test_labels=y_test
 
 
 #Para los triplets necesito un X_train con un índice más
-x_train_ext=np.zeros((M,N,X1.shape[1],X1.shape[2]))
-x_train_ext[0,:,:,:]=X1[0:N,:,:]
-x_train_ext[1,:,:,:]=X2[0:N,:,:]
-x_train_ext[2,:,:,:]=X3[0:N,:,:]
-x_train_ext[3,:,:,:]=X4[0:N,:,:]
-x_train_ext[4,:,:,:]=X5[0:N,:,:]
-x_train_ext[5,:,:,:]=X6[0:N,:,:]
-x_train_ext[6,:,:,:]=X7[0:N,:,:]
-x_train_ext[7,:,:,:]=X8[0:N,:,:]
-x_train_ext[8,:,:,:]=X9[0:N,:,:]
-x_train_ext[9,:,:,:]=X10[0:N,:,:]
+x_train_ext=np.zeros((M,N,X1.shape[1]))
+x_train_ext[0,:,:]=X1[0:N,:]
+x_train_ext[1,:,:]=X2[0:N,:]
+x_train_ext[2,:,:]=X3[0:N,:]
+x_train_ext[3,:,:]=X4[0:N,:]
+x_train_ext[4,:,:]=X5[0:N,:]
+x_train_ext[5,:,:]=X6[0:N,:]
+# x_train_ext[6,:,:]=X7[0:N,:]
+# x_train_ext[7,:,:]=X8[0:N,:]
+# x_train_ext[8,:,:]=X9[0:N,:]
+# x_train_ext[9,:,:]=X10[0:N,:]
 #x_train_ext[10,:,:,:]=X11[0:N,:,:]
 #x_train_ext[11,:,:,:]=X12[0:N,:,:]
 #x_train_ext[12,:,:,:]=X13[0:N,:,:]
@@ -289,18 +330,21 @@ x_train_ext[9,:,:,:]=X10[0:N,:,:]
 
 
 
-img_rows, img_cols = 28, 28
+# img_rows, img_cols = 28, 28
+
+
+# print(x_train.shape)
 
 if K.image_data_format() == 'channels_first':
-    x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
-    x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols) 
-    x_train_ext = x_train_ext.reshape(x_train_ext.shape[0],N, 1, img_rows, img_cols)  
+    x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
+    x_test = x_test.reshape(x_test.shape[0], 1, x_train.shape[1]) 
+    x_train_ext = x_train_ext.reshape(x_train_ext.shape[0],N, 1, x_train.shape[1])  
     input_shape = (1, img_rows, img_cols)
 else:
-    x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
-    x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
-    x_train_ext = x_train_ext.reshape(x_train_ext.shape[0],N, img_rows, img_cols,1)  
-    input_shape = (img_rows, img_cols, 1)
+    x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
+    x_test = x_test.reshape(x_test.shape[0], x_train.shape[1], 1)
+    x_train_ext = x_train_ext.reshape(x_train_ext.shape[0],N, x_train.shape[1],1)  
+    input_shape = (x_train.shape[1], 1)
 
 x_train = x_train.astype('float32')
 x_test = x_test.astype('float32')
@@ -313,7 +357,21 @@ x_train_ext /= 255
 print(x_train.shape)
 print(x_test.shape)
 
-print(a)
+# print(a)
+
+
+
+
+
+
+
+
+
+
+
+
+num_outputs = 6
+
 
 
 Triplets=True
@@ -321,17 +379,22 @@ if Triplets==True:
     
     #Declare the model
     model = Sequential()
-    model.add(Conv2D(32, kernel_size=(3, 3),
-                     activation='relu',
-                     input_shape=input_shape))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.5))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.5))
-    model.add(Flatten())
-    model.add(Dense(2, activation='linear'))
+
+    model.add(Dense(1000, input_shape=input_shape, name='dens_1_class'))
+    model.add(Dense(100, activation='sigmoid', name='dens_2_class'))
+    model.add(Dense(num_outputs, activation='softmax', name='dens_3_class'))
+
+    # model.add(Conv2D(32, kernel_size=(3, 3),
+    #                  activation='relu',
+    #                  input_shape=input_shape))
+    # model.add(Conv2D(64, (3, 3), activation='relu'))
+    # model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(Dropout(0.5))
+    # model.add(Conv2D(64, (3, 3), activation='relu'))
+    # model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(Dropout(0.5))
+    # model.add(Flatten())
+    # model.add(Dense(2, activation='linear'))
     
    
     
@@ -369,7 +432,7 @@ if Triplets==True:
     batch_size = 256
     batches_per_epoch = 200 #500
     epochs = 10
-    history_Motion = siamese_model.fit_generator(data_generator_clusters(x_train_ext, batch_size,N),
+    history_Motion = siamese_model.fit_generator(data_generator_clusters(x_train_ext, batch_size,N, x_train.shape[1]),
                                                           steps_per_epoch = batches_per_epoch,
                                                           epochs = epochs,                               
                                                           verbose = 1,
