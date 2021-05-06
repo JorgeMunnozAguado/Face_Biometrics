@@ -313,8 +313,6 @@ x_train_ext /= 255
 print(x_train.shape)
 print(x_test.shape)
 
-print(a)
-
 
 Triplets=True
 if Triplets==True:          
@@ -353,6 +351,8 @@ if Triplets==True:
     siamese_model = Model(inputs_siamese, outputs_siamese)
     siamese_model.add_loss(K.sum(contrastive_loss_triplet(outputs_siamese)))    
     siamese_model.compile(loss= None, optimizer='Adam', metrics=["accuracy"])
+
+    siamese_model.summary()
       
     
     #%% Train
@@ -366,9 +366,9 @@ if Triplets==True:
         restore_best_weights=True
     )
     
-    batch_size = 256
-    batches_per_epoch = 200 #500
-    epochs = 10
+    batch_size = 100
+    batches_per_epoch = 10#200 #500
+    epochs = 1 #10
     history_Motion = siamese_model.fit_generator(data_generator_clusters(x_train_ext, batch_size,N),
                                                           steps_per_epoch = batches_per_epoch,
                                                           epochs = epochs,                               
@@ -379,7 +379,11 @@ if Triplets==True:
     #Plot the feature embedding
     trained_model = model
     X_train_trm = trained_model.predict(x_train[:1024].reshape(-1,28,28,1))
+    print(X_train_trm.shape)
+    print(y_train[:1024].shape)
+    print(X_train_trm[0])
     scatter(X_train_trm, y_train[:1024], "Learned Feature Space",M)    
+
         
     
      

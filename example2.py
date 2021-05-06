@@ -344,7 +344,7 @@ if K.image_data_format() == 'channels_first':
     x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
     x_test = x_test.reshape(x_test.shape[0], 1, x_train.shape[1])
     x_train_ext = x_train_ext.reshape(x_train_ext.shape[0],N, 1, x_train.shape[1])
-    input_shape = (1, img_rows, img_cols)
+    input_shape = (1, x_train.shape[1])
 else:
     x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
     x_test = x_test.reshape(x_test.shape[0], x_train.shape[1], 1)
@@ -386,7 +386,10 @@ if Triplets==True:
     #Declare the model
     model = Sequential()
 
-    model.add(Dense(1000, input_shape=input_shape, activation='relu', name='dens_1_class'))
+    # print('--------------------------------------->', input_shape)
+
+    model.add(Flatten(input_shape=input_shape))
+    model.add(Dense(1000, activation='relu', name='dens_1_class'))
     model.add(Dense(100, activation='relu', name='dens_2_class'))
     model.add(Dense(num_outputs, activation='linear', name='dens_3_class'))
 
@@ -438,13 +441,13 @@ if Triplets==True:
         restore_best_weights=True
     )
 
-    batch_size = 100
+    batch_size = 20 #100
     batches_per_epoch = 10#200 #500
     epochs = 1 #10
 
-    print(x_train_ext.shape)
+    # print(x_train_ext.shape)
     #print(x_train_ext)
-    print('---------------')
+    # print('---------------')
     history_Motion = siamese_model.fit_generator(data_generator_clusters(x_train_ext, batch_size,N, x_train.shape[1]),
                                                           steps_per_epoch = batches_per_epoch,
                                                           epochs = epochs,
@@ -453,14 +456,14 @@ if Triplets==True:
 
 
     #Plot the feature embedding
-    print(x_train.shape)
-    print(x_train[:1024].reshape(-1, x_train.shape[1],1).shape)
+    # print(x_train.shape)
+    # print(x_train[:1024].reshape(-1, x_train.shape[1],1).shape)
 
     trained_model = model
-    X_train_trm = trained_model.predict(x_train[:1024], verbose=1)
-    print(X_train_trm.shape)
-    print(y_train[:1024].shape)
-    print(X_train_trm[0])
+    X_train_trm = trained_model.predict(x_train[:1024])
+    # print(X_train_trm.shape)
+    # print(y_train[:1024].shape)
+    # print(X_train_trm[0])
     scatter(X_train_trm, y_train[:1024], "Learned Feature Space",M)
 
 
@@ -475,18 +478,23 @@ if Softmax==True:
     y_test_c = keras.utils.to_categorical(y_test, M)
 
     #Declare the model
-    model = Sequential()
-    model.add(Conv2D(32, kernel_size=(3, 3),
-                     activation='relu',
-                     input_shape=input_shape))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.5))
-    model.add(Flatten())
-    model.add(Dense(128, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(2, activation='linear', name='feature_layer'))
-    model.add(Dense(M, activation='softmax'))
+    # model = Sequential()
+    # model.add(Conv2D(32, kernel_size=(3, 3),
+    #                  activation='relu',
+    #                  input_shape=input_shape))
+    # model.add(Conv2D(64, (3, 3), activation='relu'))
+    # model.add(MaxPooling2D(pool_size=(2, 2)))
+    # model.add(Dropout(0.5))
+    # model.add(Flatten())
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(2, activation='linear', name='feature_layer'))
+    # model.add(Dense(M, activation='softmax'))
+
+    model.add(Flatten(input_shape=input_shape))
+    model.add(Dense(1000, activation='relu', name='dens_1_class'))
+    model.add(Dense(100, activation='relu', name='dens_2_class'))
+    model.add(Dense(num_outputs, activation='softmax', name='dens_3_class'))
 
 
     model.compile(loss=keras.losses.categorical_crossentropy,
