@@ -41,92 +41,97 @@ from sklearn.manifold import TSNE
 def scatter(x, labels, subtitle=None,M=14):
     # We choose a color palette with seaborn.
     palette = np.array(sns.color_palette("hls", M))
+    palette = palette[labels.astype(np.int)] #/255
+
+    #print(  palette )
+    #print(  x[:,0]  )
+    #print(  x[:,1]  )
 
     # We create a scatter plot.
     f = plt.figure(figsize=(7, 7))
     ax = plt.subplot(aspect='equal')
     sc = ax.scatter(x[:,0], x[:,1], lw=0, s=40,
-                    c=palette[labels.astype(np.int)])
-    plt.xlim(-25, 25)
-    plt.ylim(-25, 25)
+                    c=palette)
+    #plt.xlim(-25, 25)
+    #plt.ylim(-25, 25)
     ax.axis('off')
     ax.axis('tight')
 
-   
+
     if subtitle != None:
         plt.suptitle(subtitle)
-        
+
     plt.savefig(subtitle)
 
 
 def data_generator_clusters(X, batch_size,NUM_SAMPLES_USER, size_data):
-        
+
     # Create empty arrays to contain batch of features and labels#
     batch_features_positive = np.zeros((batch_size, size_data,1))
     batch_features_negative = np.zeros((batch_size, size_data,1))
-    
+
     batch_features_positive2 = np.zeros((batch_size, size_data,1))
-    batch_features_negative2 = np.zeros((batch_size, size_data,1))       
-        
+    batch_features_negative2 = np.zeros((batch_size, size_data,1))
+
     batch_labels = np.zeros((batch_size,1))
     M=X.shape[0]
-    
+
     while True:
-        for i in range(batch_size):            
+        for i in range(batch_size):
             #Elegimos el usuario genuino
-            genuine_user = random.choice(range(M))            
-            
-            index_sample = random.sample(range(0,NUM_SAMPLES_USER), NUM_SAMPLES_USER)#np.random.randint(NUM_SAMPLES_USER)                
+            genuine_user = random.choice(range(M))
+
+            index_sample = random.sample(range(0,NUM_SAMPLES_USER), NUM_SAMPLES_USER)#np.random.randint(NUM_SAMPLES_USER)
              # La muestra positiva siempre del usuario genuino
             genuine_samples = X[genuine_user]
             positive_sample = genuine_samples[index_sample[0]][:,:]
             #Zero padding
-            batch_features_positive[i] = positive_sample          
-            
+            batch_features_positive[i] = positive_sample
+
             # La muestra negativa puede ser de un usuario impostor o del genuinao
             batch_labels[i] = 1#np.random.randint(2)
-            if batch_labels[i] == 0: #Muestra del usuario genuino 
+            if batch_labels[i] == 0: #Muestra del usuario genuino
                 negative_sample = genuine_samples[index_sample[0]][:,:]
-            else: #Muestra del usuario impostor                        
+            else: #Muestra del usuario impostor
                 impostor_user = random.choice(range(M))
-                
+
                 while genuine_user == impostor_user:
-                    impostor_user = random.choice(range(M))                                        
-                
+                    impostor_user = random.choice(range(M))
+
                 impostor_samples = X[impostor_user]
                 negative_sample = impostor_samples[index_sample[0]][:,:]
             #Zero padding
             batch_features_negative[i] = negative_sample
-            
-                
-            ######################   2    ####################################    
+
+
+            ######################   2    ####################################
             positive_sample = genuine_samples[index_sample[1]][:,:]
             #Zero padding
-            batch_features_positive2[i] = positive_sample  
-            
-            if batch_labels[i] == 0: #Muestra del usuario genuino               
-                
-                negative_sample = genuine_samples[index_sample[1]][:,:]                
-            else: #Muestra del usuario impostor                
+            batch_features_positive2[i] = positive_sample
+
+            if batch_labels[i] == 0: #Muestra del usuario genuino
+
+                negative_sample = genuine_samples[index_sample[1]][:,:]
+            else: #Muestra del usuario impostor
                 while genuine_user == impostor_user:
-                    impostor_user = random.choice(range(M))                                        
-                
+                    impostor_user = random.choice(range(M))
+
                 impostor_samples = X[impostor_user]
                 negative_sample = impostor_samples[index_sample[1]][:,:]
             #Zero padding
-            batch_features_negative2[i] = negative_sample 
-            
-           
-                   
-                
+            batch_features_negative2[i] = negative_sample
+
+
+
+
         yield ({'Up_input': batch_features_positive,
                 'Down_input': batch_features_negative,
                 'Up_input2': batch_features_positive2,
-                'Down_input2': batch_features_negative2,                              
+                'Down_input2': batch_features_negative2,
                 'label': batch_labels}, None)
-    
-    
-    
+
+
+
 def contrastive_loss_triplet(inputs, dist='euclidean', margin= 'maxplus',  alpha = 0.5):  #1.5
     Up_output, Down_ouput, Up_output2, Down_ouput2, Y_true = inputs
 
@@ -136,12 +141,12 @@ def contrastive_loss_triplet(inputs, dist='euclidean', margin= 'maxplus',  alpha
 
     distance_p1_up1 = K.square(Up - Up2)   #Anchor-Positive distance
     distance_n1_up1 = K.square(Up - Down)  #Anchor- Negative distance
-   
-    distance_p1_up1 = K.sqrt(K.sum(distance_p1_up1, axis=-1, keepdims=True))        
-    distance_n1_up1 = K.sqrt(K.sum(distance_n1_up1, axis=-1, keepdims=True))  
-    
-    loss = K.maximum(0.0, (distance_p1_up1) - (distance_n1_up1) + alpha)  
-    
+
+    distance_p1_up1 = K.sqrt(K.sum(distance_p1_up1, axis=-1, keepdims=True))
+    distance_n1_up1 = K.sqrt(K.sum(distance_n1_up1, axis=-1, keepdims=True))
+
+    loss = K.maximum(0.0, (distance_p1_up1) - (distance_n1_up1) + alpha)
+
     return K.sum(loss)
 
 
@@ -247,7 +252,7 @@ X6, _ = dict2list(data_dict, {'MN':0}, 'train')    # MN
 #Create x_train and y_train arrays
 x_train=np.zeros((N*M,X1.shape[1]))
 y_train=np.zeros((N*M,))
-for i in range(N):    
+for i in range(N):
     x_train[(i*M)+0,:]=X1[i,:]
     x_train[(i*M)+1,:]=X2[i,:]
     x_train[(i*M)+2,:]=X3[i,:]
@@ -270,14 +275,14 @@ for i in range(N):
 #    x_train[(i*M)+19,:,:]=X20[i,:,:]
     for j in range(M):
         y_train[(i*M)+j,]=j
-    
+
 y_train_labels=y_train
 
 
 
 x_test=np.zeros((N_test*M,X1.shape[1]))
 y_test=np.zeros((N_test*M,))
-for i in range(N_test):    
+for i in range(N_test):
     x_test[(i*M)+0,:]=X1[i+N,:]
     x_test[(i*M)+1,:]=X2[i+N,:]
     x_test[(i*M)+2,:]=X3[i+N,:]
@@ -297,10 +302,10 @@ for i in range(N_test):
 #    x_test[(i*M)+16,:,:]=X17[i+N,:,:]
 #    x_test[(i*M)+17,:,:]=X18[i+N,:,:]
 #    x_test[(i*M)+18,:,:]=X19[i+N,:,:]
-#    x_test[(i*M)+19,:,:]=X20[i+N,:,:]    
+#    x_test[(i*M)+19,:,:]=X20[i+N,:,:]
     for j in range(M):
         y_test[(i*M)+j,]=j
-    
+
 y_test_labels=y_test
 
 
@@ -337,13 +342,13 @@ x_train_ext[5,:,:]=X6[0:N,:]
 
 if K.image_data_format() == 'channels_first':
     x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
-    x_test = x_test.reshape(x_test.shape[0], 1, x_train.shape[1]) 
-    x_train_ext = x_train_ext.reshape(x_train_ext.shape[0],N, 1, x_train.shape[1])  
+    x_test = x_test.reshape(x_test.shape[0], 1, x_train.shape[1])
+    x_train_ext = x_train_ext.reshape(x_train_ext.shape[0],N, 1, x_train.shape[1])
     input_shape = (1, img_rows, img_cols)
 else:
     x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], 1)
     x_test = x_test.reshape(x_test.shape[0], x_train.shape[1], 1)
-    x_train_ext = x_train_ext.reshape(x_train_ext.shape[0],N, x_train.shape[1],1)  
+    x_train_ext = x_train_ext.reshape(x_train_ext.shape[0],N, x_train.shape[1],1)
     input_shape = (x_train.shape[1], 1)
 
 x_train = x_train.astype('float32')
@@ -353,7 +358,7 @@ x_test /= 255
 x_train_ext = x_train_ext.astype('float32')
 x_train_ext /= 255
 
-    
+
 print(x_train.shape)
 print(x_test.shape)
 
@@ -371,18 +376,19 @@ print(x_test.shape)
 
 
 num_outputs = 6
+#num_outputs = 2
 
 
 
 Triplets=True
-if Triplets==True:          
-    
+if Triplets==True:
+
     #Declare the model
     model = Sequential()
 
-    model.add(Dense(1000, input_shape=input_shape, name='dens_1_class'))
-    model.add(Dense(100, activation='sigmoid', name='dens_2_class'))
-    model.add(Dense(num_outputs, activation='softmax', name='dens_3_class'))
+    model.add(Dense(1000, input_shape=input_shape, activation='relu', name='dens_1_class'))
+    model.add(Dense(100, activation='relu', name='dens_2_class'))
+    model.add(Dense(num_outputs, activation='linear', name='dens_3_class'))
 
     # model.add(Conv2D(32, kernel_size=(3, 3),
     #                  activation='relu',
@@ -395,29 +401,32 @@ if Triplets==True:
     # model.add(Dropout(0.5))
     # model.add(Flatten())
     # model.add(Dense(2, activation='linear'))
-    
-   
-    
+
+
+
     #Declare the Siamese architecture
     Up_input = Input(shape = input_shape, name='Up_input')
     Down_input = Input(shape = input_shape, name='Down_input')
     Up_input2 = Input(shape = input_shape, name='Up_input2')
-    Down_input2 = Input(shape = input_shape, name='Down_input2')    
+    Down_input2 = Input(shape = input_shape, name='Down_input2')
     Label = Input(shape = (1,), name='label')
-    
+
     Up_output = model(Up_input)
     Down_output = model(Down_input)
     Up_output2 = model(Up_input2)
-    Down_output2 = model(Down_input2)    
+    Down_output2 = model(Down_input2)
     inputs_siamese = [Up_input, Down_input, Up_input2, Down_input2, Label]
     outputs_siamese = [Up_output, Down_output, Up_output2, Down_output2, Label]
 
-        
+
     siamese_model = Model(inputs_siamese, outputs_siamese)
-    siamese_model.add_loss(K.sum(contrastive_loss_triplet(outputs_siamese)))    
+    siamese_model.add_loss(K.sum(contrastive_loss_triplet(outputs_siamese)))
     siamese_model.compile(loss= None, optimizer='Adam', metrics=["accuracy"])
-      
-    
+
+
+    siamese_model.summary()
+
+
     #%% Train
     early_stopping_monitor = EarlyStopping(
         monitor='loss',
@@ -428,33 +437,43 @@ if Triplets==True:
         baseline=None,
         restore_best_weights=True
     )
-    
-    batch_size = 256
-    batches_per_epoch = 200 #500
-    epochs = 10
+
+    batch_size = 100
+    batches_per_epoch = 10#200 #500
+    epochs = 1 #10
+
+    print(x_train_ext.shape)
+    #print(x_train_ext)
+    print('---------------')
     history_Motion = siamese_model.fit_generator(data_generator_clusters(x_train_ext, batch_size,N, x_train.shape[1]),
                                                           steps_per_epoch = batches_per_epoch,
-                                                          epochs = epochs,                               
+                                                          epochs = epochs,
                                                           verbose = 1,
                                                           callbacks=[early_stopping_monitor ])
-    
-    
+
+
     #Plot the feature embedding
+    print(x_train.shape)
+    print(x_train[:1024].reshape(-1, x_train.shape[1],1).shape)
+
     trained_model = model
-    X_train_trm = trained_model.predict(x_train[:1024].reshape(-1,28,28,1))
-    scatter(X_train_trm, y_train[:1024], "Learned Feature Space",M)    
-        
-    
-     
-    
-    
+    X_train_trm = trained_model.predict(x_train[:1024], verbose=1)
+    print(X_train_trm.shape)
+    print(y_train[:1024].shape)
+    print(X_train_trm[0])
+    scatter(X_train_trm, y_train[:1024], "Learned Feature Space",M)
+
+
+
+
+
 Softmax=False
-if Softmax==True:    
-        
+if Softmax==True:
+
     # convert class vectors to binary class matrices
-    y_train_c = keras.utils.to_categorical(y_train, M)    
+    y_train_c = keras.utils.to_categorical(y_train, M)
     y_test_c = keras.utils.to_categorical(y_test, M)
-    
+
     #Declare the model
     model = Sequential()
     model.add(Conv2D(32, kernel_size=(3, 3),
@@ -473,8 +492,8 @@ if Softmax==True:
     model.compile(loss=keras.losses.categorical_crossentropy,
                   optimizer=keras.optimizers.Adadelta(),
                   metrics=['accuracy'])
-    
-    
+
+
     early_stopping_monitor = EarlyStopping(
         monitor='accuracy',
         min_delta=0,
@@ -484,8 +503,8 @@ if Softmax==True:
         baseline=None,
         restore_best_weights=True
     )
-    
-    
+
+
     batch_size=256
     model.fit(x_train, y_train_c,
               batch_size=batch_size,
@@ -493,18 +512,14 @@ if Softmax==True:
               verbose=1,
               callbacks=[early_stopping_monitor],
               validation_data=(x_test, y_test_c))
-    
-    
+
+
     #Select the layer with two units
-    embedding_layer = model.get_layer("feature_layer").output            
+    embedding_layer = model.get_layer("feature_layer").output
     feature_extractor = Model(model.input, embedding_layer)
-            
-       
+
+
     #Plot the feature embedding
-    trained_model=feature_extractor    
+    trained_model=feature_extractor
     X_train_trm = trained_model.predict(x_train[:1024].reshape(-1,28,28,1))
-    scatter(X_train_trm, y_train_labels[:1024], "Learned Feature Space",M)    
-    
-    
-
-
+    scatter(X_train_trm, y_train_labels[:1024], "Learned Feature Space",M)
