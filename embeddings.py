@@ -114,4 +114,4 @@ def loadModel(verbose=0):
 if __name__ == '__main__':
 
     model = loadModel()
-    loadSet('4K_120', model, cut=750, verbose=1)
+    loadSet('4K_120', model, cut=1250, verbose=1)

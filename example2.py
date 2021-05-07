@@ -34,7 +34,9 @@ import pickle
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 
-
+from classifier import split_classes, train, evaluate, defineModel, saveModel, loadModel
+# from dataset import suffle_array, label_race
+from task_4 import dict2list
 
 
 
@@ -150,10 +152,16 @@ def contrastive_loss_triplet(inputs, dist='euclidean', margin= 'maxplus',  alpha
     return K.sum(loss)
 
 
+def get_dataset_all(data_dict, classes):
 
-N=50 #Número de muestras por clase a usar
+    train, _ = dict2list(data_dict, classes, 'train')    # HA
+    test,  _ = dict2list(data_dict, classes, 'test')
+
+    return np.concatenate((train, test))
+
+N=1000 #Número de muestras por clase a usar
 M=6 #Número de clases
-N_test=200 #Numero de muestras de test
+N_test=250 #Numero de muestras de test
 img_rows, img_cols = 28, 28
 
 path = 'quick_draw/quickdraw_22_DB/'
@@ -175,20 +183,18 @@ path = 'quick_draw/quickdraw_22_DB/'
 # print('-------------------------------->', X1.shape)
 
 
-from classifier import split_classes, train, evaluate, defineModel, saveModel, loadModel
-# from dataset import suffle_array, label_race
-from task_4 import dict2list
+
 
 csv_file = '4K_120/embeddings.csv'
 
 data_dict = split_classes(csv_file)
 
-X1, _ = dict2list(data_dict, {'HA':0}, 'train')    # HA
-X2, _ = dict2list(data_dict, {'MA':0}, 'train')    # MA
-X3, _ = dict2list(data_dict, {'HB':0}, 'train')    # HB
-X4, _ = dict2list(data_dict, {'MB':0}, 'train')    # MB
-X5, _ = dict2list(data_dict, {'HN':0}, 'train')    # HN
-X6, _ = dict2list(data_dict, {'MN':0}, 'train')    # MN
+X1 = get_dataset_all(data_dict, {'HA':0})    # HA
+X2 = get_dataset_all(data_dict, {'MA':0})    # MA
+X3 = get_dataset_all(data_dict, {'HB':0})    # HB
+X4 = get_dataset_all(data_dict, {'MB':0})    # MB
+X5 = get_dataset_all(data_dict, {'HN':0})    # HN
+X6 = get_dataset_all(data_dict, {'MN':0})    # MN
 
 
 # print(X_train.shape)
@@ -390,8 +396,10 @@ if Triplets==True:
 
     model.add(Flatten(input_shape=input_shape))
     model.add(Dense(1000, activation='relu', name='dens_1_class'))
+    model.add(Dropout(0.3))
     model.add(Dense(100, activation='relu', name='dens_2_class'))
-    model.add(Dense(num_outputs, activation='linear', name='dens_3_class'))
+    model.add(Dropout(0.2))
+    model.add(Dense(2, activation='linear', name='dens_3_class'))
 
     # model.add(Conv2D(32, kernel_size=(3, 3),
     #                  activation='relu',
@@ -441,14 +449,14 @@ if Triplets==True:
         restore_best_weights=True
     )
 
-    batch_size = 20 #100
-    batches_per_epoch = 10#200 #500
-    epochs = 1 #10
+    batch_size = 30 #100
+    batches_per_epoch = 600 #500
+    epochs = 5 #10
 
     # print(x_train_ext.shape)
     #print(x_train_ext)
     # print('---------------')
-    history_Motion = siamese_model.fit_generator(data_generator_clusters(x_train_ext, batch_size,N, x_train.shape[1]),
+    history_Motion = siamese_model.fit_generator(data_generator_clusters(x_train_ext, batch_size, N, x_train.shape[1]),
                                                           steps_per_epoch = batches_per_epoch,
                                                           epochs = epochs,
                                                           verbose = 1,
@@ -461,16 +469,17 @@ if Triplets==True:
 
     trained_model = model
     X_train_trm = trained_model.predict(x_train[:1024])
-    # print(X_train_trm.shape)
-    # print(y_train[:1024].shape)
-    # print(X_train_trm[0])
-    scatter(X_train_trm, y_train[:1024], "Learned Feature Space",M)
+
+    print(x_train[0])
+    print(X_train_trm[0])
+
+    scatter(X_train_trm, y_train[:1024], "Learned Feature Space - triplet",M)
 
 
 
 
 
-Softmax=False
+Softmax=True
 if Softmax==True:
 
     # convert class vectors to binary class matrices
@@ -478,7 +487,7 @@ if Softmax==True:
     y_test_c = keras.utils.to_categorical(y_test, M)
 
     #Declare the model
-    # model = Sequential()
+    model = Sequential()
     # model.add(Conv2D(32, kernel_size=(3, 3),
     #                  activation='relu',
     #                  input_shape=input_shape))
@@ -491,15 +500,21 @@ if Softmax==True:
     # model.add(Dense(2, activation='linear', name='feature_layer'))
     # model.add(Dense(M, activation='softmax'))
 
+
     model.add(Flatten(input_shape=input_shape))
     model.add(Dense(1000, activation='relu', name='dens_1_class'))
+    #model.add(Dense(1000, input_shape=input_shape, activation='relu', name='dens_1_class'))
     model.add(Dense(100, activation='relu', name='dens_2_class'))
+    model.add(Dropout(0.5))
+    model.add(Dense(2, activation='linear', name='feature_layer'))
     model.add(Dense(num_outputs, activation='softmax', name='dens_3_class'))
 
 
     model.compile(loss=keras.losses.categorical_crossentropy,
                   optimizer=keras.optimizers.Adadelta(),
                   metrics=['accuracy'])
+
+    model.summary()
 
 
     early_stopping_monitor = EarlyStopping(
@@ -513,10 +528,10 @@ if Softmax==True:
     )
 
 
-    batch_size=256
+    batch_size=35
     model.fit(x_train, y_train_c,
               batch_size=batch_size,
-              epochs=200,
+              epochs=20,
               verbose=1,
               callbacks=[early_stopping_monitor],
               validation_data=(x_test, y_test_c))
@@ -529,5 +544,5 @@ if Softmax==True:
 
     #Plot the feature embedding
     trained_model=feature_extractor
-    X_train_trm = trained_model.predict(x_train[:1024].reshape(-1,28,28,1))
-    scatter(X_train_trm, y_train_labels[:1024], "Learned Feature Space",M)
+    X_train_trm = trained_model.predict(x_train[:1024])
+    scatter(X_train_trm, y_train_labels[:1024], "Learned Feature Space - softmax",M)
