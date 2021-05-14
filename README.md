@@ -1,37 +1,47 @@
+# Face Biometrics: Fairness and Biases
 
+
+## Environment instalation
+
+To install the environment run the following commands:
+
+```
 conda create -y --name faceBio python=3.6
 
 conda activate faceBio
 
-#conda install -y keras-gpu tensorflow-gpu
 conda install -y keras-gpu==2.3.1 tensorflow-gpu==2.1.0
 conda install -y numpy pillow
 pip install opencv-python keras-vggface Keras-Applications
 pip install pandas scikit-learn matplotlib ipython seaborn
+```
+
+Download the dataset: [Face Biometrics](https://dauam-my.sharepoint.com/:u:/g/personal/aythami_morales_uam_es/ERd0YZG26FlGl1hr9nQtd54BNmW2XMwuzS-LXh0DoMp2ig?e=f8jD7w)
 
 
-https://dauam-my.sharepoint.com/:u:/g/personal/aythami_morales_uam_es/ERd0YZG26FlGl1hr9nQtd54BNmW2XMwuzS-LXh0DoMp2ig?e=f8jD7w
+## Dataset labeling
+
+Special labeling was used to identify gender and ethnicities.
+
+```
+Labels:   HA, HB, HN, MA, MB, MN
+```
+
+Where each letter corresponds with bellow description:
+
+```
+H : Hombre (Man)
+M : Mujer (Woman)
+-----------------
+A : Asiático (Asian)
+B : Blanco (White)
+N : Negro (Black)
+```
 
 
-Etiquetas:   HA, HB, HN, MA, MB, MN
+## Results
 
-H : Hombre
-M : Mujer
-
-A : Asiático
-B : Blanco
-N : Negro
-
-# Second task dataset
-
-https://github.com/googlecreativelab/quickdraw-dataset
-
-con problemas en el aprendizaje -> max(0, loss), loss = d(anchor, negative) - d(anchor, positive) + alfa   ->   alfa es la distancia mínima entre clases
-Se utilizan bottlenecks ya que t-SNE es un aprendizaje no supervisado.
-
-
-
-# Resultados
+By running experiments we ended with the next results:
 
 ```
 Model trained with Asiaticos       accuracy (loss):
@@ -55,6 +65,6 @@ Model trained with Negros       accuracy (loss):
 ---------------------------------------------
 ```
 
-# Grad-cam
+## References
 
-https://keras.io/examples/vision/grad_cam/
+[Grad-cam](https://keras.io/examples/vision/grad_cam/)
